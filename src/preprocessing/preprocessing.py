@@ -16,7 +16,7 @@ def read_mat(filename):
         p(array): Image data p(wavenmber,h,w).
         wavenumber(array): Wavenumber arary (ex. 800-1000).
         sp: Image data sp(wavenumber,w*h).
-  """
+    """
   
     me, file_extension = os.path.splitext(filename)
     if (file_extension == '.dms'):
