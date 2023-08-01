@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 
-def readmat(filename):
+def read_mat(filename):
     """
     Function to read matlab file from OPUS FTIR Bruker.
     Code from Syahril, modified by Rafsanjani.
