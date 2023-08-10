@@ -3,7 +3,7 @@ requires = ['setuptools>=42']
 build-backend = 'setuptools.build_meta'
 
 [metadata]
-name = "my-project"
+name = "biospecml"
 version = "1.0.0"
 description = "A sample project"
 author = "Your Name"
