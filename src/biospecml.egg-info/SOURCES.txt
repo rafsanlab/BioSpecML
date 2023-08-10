@@ -1,0 +1,16 @@
+LICENSE.txt
+MANIFEST.in
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+src/biospecml/__init__.py
+src/biospecml/preprocessing.py
+src/biospecml.egg-info/PKG-INFO
+src/biospecml.egg-info/SOURCES.txt
+src/biospecml.egg-info/dependency_links.txt
+src/biospecml.egg-info/top_level.txt
+src/biospecml/ml/__init__.py
+src/biospecml/ml/models.py
+tests/test_models.py
+tests/test_preprocessing.py
