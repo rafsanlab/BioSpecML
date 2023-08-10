@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-    name='TowelStuff',
+    name='biospecml',
     version='0.1dev',
     packages=['towelstuff',],
     license='Creative Commons Attribution-Noncommercial-Share Alike license',
