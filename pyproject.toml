@@ -3,17 +3,16 @@ requires = ['setuptools>=42']
 build-backend = 'setuptools.build_meta'
 
 [metadata]
-name = basicpkg
-version = 1.0.0
-author = your name
-author_email = your email
-description = A simple Python package
-long_description = file: README.md, LICENSE.txt
+name = package-name
+version = 0.0.1
+author = name of the author
+author_email = author@example.com
+description = short package description
+long_description = file: README.md
 long_description_content_type = text/markdown
-url = https://gitlab.com/codasteroid/basicpkg
+url = package url
 project_urls =
-    Bug Tracker = https://gitlab.com/codasteroid/basicpkg/-/issues
-    repository = https://gitlab.com/codasteroid/basicpkg
+    Bug Tracker = package issues url
 classifiers =
     Programming Language :: Python :: 3
     License :: OSI Approved :: MIT License
