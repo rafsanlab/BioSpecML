@@ -1,4 +1,7 @@
-Project is on-going development.
+> Project is on-going development.
+
+# Introduction
+A code library python package for spectra processing and analysis.
 
 # Installation
 This is a guide of installation with code in Colab environment.
