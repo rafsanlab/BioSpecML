@@ -82,3 +82,23 @@ def projection_std(p:np.ndarray):
         for j in range(p.shape[2]):
             img_std[i,j] = np.std(p[:,i,j])
     return img_std
+
+def img_inverse(img:np.ndarray, point:tuple=(0,0), background:int=0):
+    """
+    Inverse image using cv.bitwise_not by checking the point given whether it fit
+    the background. If it's not, it inverse will be run. (this func is use to invert
+    K-means 1 and 0 cluster output results).
+
+    Args:
+        img : the K-means image projection (2D image)
+        point : background coordinate
+        background : background value (i.e; 1 or 0)
+
+    Returns:
+        img : inversed or not inversed image
+    """
+    if img[point[0], point[1]] != background:
+        img = cv.bitwise_not(img)
+        return img
+    else:
+        return img
