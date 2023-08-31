@@ -4,6 +4,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import DBSCAN
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 def cluster_k(p, k=2, init=1, max_iter=300, scale=False):
     """
