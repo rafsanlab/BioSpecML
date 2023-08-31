@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
-             title_size=10, show=True, fname=None):
+             title_size=10, cmap='binary', show=True, fname=None):
     """
     Plot X number of rows and columns subplot.
 
@@ -13,6 +13,7 @@ def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
         imgs: list of image array to be plotted
         titles: list of titles in string
         title_size: title font size
+        cmap: plt's cmap
         show: to show plot or not
         fname: str of image name with img format
 
@@ -20,7 +21,7 @@ def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
         plt.show()
     """  
     _, axs = plt.subplots(nrows, ncols, dpi=dpi, figsize=figsize)
-    for i in range(ncols): axs[i].imshow(imgs[i])  
+    for i in range(ncols): axs[i].imshow(imgs[i], cmap=cmap)  
     if titles != []:
         for i in range(ncols): axs[i].title.set_text(titles[i])
         for i in range(ncols): axs[i].title.set_size(title_size)
