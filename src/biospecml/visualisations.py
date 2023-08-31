@@ -58,6 +58,7 @@ def plot_images_from_folder(
     # === get the images ===
     # image_files = [f for f in os.listdir(folder_path) if f.endswith(('.png', '.jpg', '.jpeg'))]
     image_files = [f for f in os.listdir(folder_path) if f.endswith((img_format))]
+    image_files.sort()
 
     # === plot each images ===
     for i, ax in enumerate(axes):
