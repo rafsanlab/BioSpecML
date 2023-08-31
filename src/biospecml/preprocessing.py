@@ -103,7 +103,7 @@ def img_inverse(img:np.ndarray, point:tuple=(0,0), background:int=0):
     else:
         return img
 
-import cv2 as cv
+
 
 def img_thres_otsu(img, blur_kernel=(3,3), tval=0, maxval=255):
     """
@@ -158,21 +158,21 @@ def img_rm_debris(img, X1=0.01):
 
     # determine average area
     average_area = [] 
-    cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = cv.findContours(thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     cnts = cnts[0] if len(cnts) == 2 else cnts[1]
     for c in cnts:
-        x,y,w,h = cv2.boundingRect(c)
+        x,y,w,h = cv.boundingRect(c)
         area = w * h
         average_area.append(area)
     average = sum(average_area) / len(average_area)
 
     # remove 'debris'
-    cnts = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
     cnts = cnts[0] if len(cnts) == 2 else cnts[1]
     for c in cnts:
-        area = cv2.contourArea(c)
+        area = cv.contourArea(c)
         if area < average * X1:
-             cv2.drawContours(thresh, [c], -1, (0,0,0), -1)
+             cv.drawContours(thresh, [c], -1, (0,0,0), -1)
     return thresh
 
 
