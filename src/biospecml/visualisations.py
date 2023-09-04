@@ -81,8 +81,11 @@ def plot_images_from_folder(
         # save condition
         if fname!=None:
             plt.savefig(fname, dpi=save_dpi)
+        plt.close()
+        plt.clf() 
     elif show_plot==False:
         # save condition
         if fname!=None:
             plt.savefig(fname, dpi=save_dpi)
         plt.close()
+        plt.clf() 
