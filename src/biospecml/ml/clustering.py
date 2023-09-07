@@ -153,7 +153,7 @@ def plot_clusters_img(cluster_col, w, h, cmap='Spectral', fname=None):
 def plot_spectra_clusters(
     dataframe, cluster_column_name, cmap='Spectral', drop_columns=None, shade=False,
     save_dpi=200, plot_dpi=80, figsize=(7, 4), legend='in', legend_size=7,
-    title='Mean spectra of all clusters', fname=None
+    title='Mean spectra of all clusters', fname=None, show_plot=True
     ):
     """
     Plot mean spectra based on cluster.
@@ -237,7 +237,10 @@ def plot_spectra_clusters(
     plt.title(title)
     if fname != None:
         plt.savefig(fname=fname, dpi=save_dpi, bbox_inches='tight')
-    plt.show()
+    if show_plot==True:
+        plt.show()
+    else:
+        plt.close()
 
 
 import pandas as pd
