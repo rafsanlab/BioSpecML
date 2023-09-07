@@ -184,8 +184,12 @@ def plot_spectra_clusters(
     for cluster_number in unique_clusters:
 
         # === this condition exclude NaN value ===
-        if np.isnan(cluster_number):
-            continue
+        if isinstance(cluster_number, int or float):
+            print('True')
+            if np.isnan(cluster_number):
+                cluster_number = int(cluster_number)
+                continue
+            
         filtered_rows = dataframe[dataframe[cluster_column_name] == cluster_number]
 
         # === this condition define range columns to be exclude ===
@@ -205,7 +209,7 @@ def plot_spectra_clusters(
 
         plt.plot(
             average_row.index, average_row.values, linewidth=1.0,
-            label=f'Cluster {int(cluster_number)}', color=line_color
+            label=f'{cluster_number}', color=line_color
             )
 
         if shade != False:
@@ -234,6 +238,7 @@ def plot_spectra_clusters(
     if fname != None:
         plt.savefig(fname=fname, dpi=save_dpi, bbox_inches='tight')
     plt.show()
+
 
 import pandas as pd
 import seaborn as sns
