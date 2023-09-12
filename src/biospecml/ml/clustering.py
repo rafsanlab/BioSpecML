@@ -149,6 +149,111 @@ def plot_clusters_img(cluster_col, w, h, cmap='Spectral', fname=None):
         plt.savefig(fname=fname)
     plt.show()
 
+def plot_spectra_clusters(
+    dataframe, cluster_column_name, cmap='Spectral', drop_columns=None, shade=False,
+    save_dpi=200, plot_dpi=80, figsize=(7, 4), legend='in', legend_size=7, wavenumber=None, wavenumber_xticks=10,
+    title='Mean spectra of all clusters', fname=None, show_plot=True
+    ):
+    """
+    Plot mean spectra based on cluster.
+
+    Args:
+        dataframe(pd.DataFrame): df containing data.
+        cluster_column_name(str): name of cluster column.
+        cmap(str): Matplotlib cmap name.
+        drop_columns(tuple): range of columns to be dropped.
+        shade(bool): option for SD shade for each cluster.
+        save_dpi(int): dpi for saved figure.
+        plot_dpi(int): dpi for plotted figue.
+        figsize(tuple): figure size.
+        legend(str): to be 'in' plot or 'out'.
+        legend_size(int): size of legend.
+        title(str): title name.
+        fname(str): filename or save path with filename.
+    Return:
+        Matplotlib figure.
+    """
+    # get unique cluster number from the column
+    unique_clusters = dataframe[cluster_column_name].unique()
+    unique_clusters.sort() # <-this sort will tally to the image legend
+
+    # === plotting ===
+    plt.figure(dpi=plot_dpi, figsize=figsize)
+    cmap, i = plt.get_cmap(cmap), 0 # <-for plot line colours
+    for cluster_number in unique_clusters:
+
+        # === this condition exclude NaN value ===
+        if isinstance(cluster_number, int or float):
+            print('True')
+            if np.isnan(cluster_number):
+                cluster_number = int(cluster_number)
+                continue
+
+        filtered_rows = dataframe[dataframe[cluster_column_name] == cluster_number]
+
+        # === this condition define range columns to be exclude ===
+        if drop_columns != None:
+            filtered_rows = filtered_rows.drop(
+                filtered_rows.iloc[:, drop_columns[0]:drop_columns[1]],axis = 1
+                )
+        average_row = filtered_rows.mean()
+
+        # === colour mapping each cluster ===
+        # i dont get this, but it works
+        denominator = len(unique_clusters) - 1
+        if denominator != 0:
+            line_color = cmap(i / denominator)
+        else:
+            line_color = cmap(i / 1)
+        if wavenumber!=None:
+            plt.plot(
+                average_row.index, average_row.values, linewidth=1.0,
+                label=f'{cluster_number}', color=line_color,
+                )
+            # x = np.arange(0, len(wavenumber), 200)
+            # x_labels = wavenumber[::1]
+            # wavenumber_xticks = 10
+            x = np.linspace(0, len(wavenumber) - 1, wavenumber_xticks, dtype=int)
+            x_labels = [wavenumber[i] for i in x]
+            plt.xticks(ticks=x, labels=x_labels, rotation=None)  # Adjust rotation if needed
+            # plt.subplots_adjust(wspace=0.5)
+        else:
+            plt.plot(
+                average_row.index, average_row.values, linewidth=1.0,
+                label=f'{cluster_number}', color=line_color
+                )
+
+        if shade != False:
+            # === this condition plot SD as shaded area ===
+            std_row = filtered_rows.std()
+            plt.fill_between(
+                average_row.index.astype(float),
+                average_row.values - std_row.values,
+                average_row.values + std_row.values,  alpha=0.2
+                )
+
+        i += 1 # <-for cmap colour
+
+    # === legend in or out condition ===
+    if legend != 'in':
+        legend = plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+        plt.subplots_adjust(right=0.7) # <-make space for the legend
+    else:
+        plt.legend(prop={'size': legend_size})
+
+    # === other parameters ===
+    plt.set_cmap('jet')
+    plt.xlabel('Wavenumber (cm$^{-1}$)')
+    plt.ylabel('Absorbance')
+    plt.title(title)
+    if fname != None:
+        plt.savefig(fname=fname, dpi=save_dpi, bbox_inches='tight')
+    if show_plot==True:
+        plt.show()
+    else:
+        plt.close()
+
+'''
 
 def plot_spectra_clusters(
     dataframe, cluster_column_name, cmap='Spectral', drop_columns=None, shade=False,
@@ -304,3 +409,4 @@ def plot_clusters_distr(df, cluster_col, data_col, mode='boxplot', cmap='Spectra
     plt.show()
     if return_median==True:
         return medians
+'''
