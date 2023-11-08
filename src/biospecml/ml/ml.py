@@ -1,4 +1,84 @@
+import numpy as np
+from scipy import ndimage
 import torch
+import random
+
+def rotate_and_random_flip(images=[], pair_mode=False, rotate=True, rotate_method='numpy',
+                           rotation_range=180, minimum_angle=30, rotation_angle=90, mode='nearest',
+                           flip_horizontal=True, flip_vertical=False):
+    """
+    Arguments:
+        - expect images in an array, i.e: [img1, img2, ..]
+        - or in pair_mode, expect paired images, i.e: [[img1, img2, ..], ..]
+        - expect (w x h x c) image format
+        - rotate_method='numpy' will rotate only 90 deg step, set in rotation_angle i.e: 90, 180..
+        - rotate_method='scipy' will use rotation_range, minimum_angle and mode
+    Returns:
+        augmented_image
+
+    """
+    augmented_images = []
+    for image in images:
+
+        if rotate:
+
+            # Random rotation using scipy
+            if rotate_method=='scipy':
+                angle = random.randint(0, rotation_range + minimum_angle)
+                if pair_mode:
+                    augmented_image = []
+                    for pair in image:
+                        augmented_pair = ndimage.rotate(pair, angle, axes=(0, 1), reshape=True, mode=mode)
+                        augmented_image.append(augmented_pair)
+                else:
+                    augmented_image = ndimage.rotate(image, angle, axes=(0, 1), reshape=True, mode=mode)
+
+            # 90 rotation using numpy
+            elif rotate_method=='numpy':
+                if pair_mode:
+                    augmented_image = []
+                    for pair in image:
+                        augmented_pair = np.rot90(pair, k=rotation_angle // 90)
+                        augmented_image.append(augmented_pair)
+                else:
+                    augmented_image = np.rot90(image, k=rotation_angle // 90)
+        else:
+            augmented_image = image
+
+        if flip_horizontal or flip_vertical:
+
+            # track if image is at least flipped
+            flip_signal = 0
+
+            while flip_signal==0:
+
+                # Random horizontal flip
+                if flip_horizontal and random.choice([True, False]):
+                    if pair_mode:
+                        temp_ = []
+                        for pair in augmented_image:
+                            temp_aug = np.flip(pair, axis=1)
+                            temp_.append(temp_aug)
+                        augmented_image = temp_
+                    else:
+                        augmented_image = np.flip(augmented_image, axis=1)
+                    flip_signal += 1
+
+                # Random vertical flip
+                if flip_horizontal and random.choice([True, False]):
+                    if pair_mode:
+                        temp_ = []
+                        for pair in augmented_image:
+                            temp_aug = np.flip(pair, axis=1)
+                            temp_.append(temp_aug)
+                        augmented_image = temp_
+                    else:
+                        augmented_image = np.flip(augmented_image, axis=0)
+                    flip_signal += 1
+
+        augmented_images.append(augmented_image)
+    return augmented_images
+
 
 def calc_DatasetMeanStd(loader, channels, data_position=None):
     """
