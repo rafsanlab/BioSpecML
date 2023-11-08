@@ -1,6 +1,63 @@
 import matplotlib.pyplot as plt
-import os
 import matplotlib.image as mpimg
+import os
+import random
+
+def plot_spectra_mean(
+    dataframe, shade=True, random_row_num=None, save_dpi=200, plot_dpi=80,
+    figsize=(7, 4), title='Mean spectra', fname=None
+    ):
+    """
+    Plot average spectra with SD shade from a dataframe (please exclude metadata
+    columns) with additional random spectra if needed.
+
+    Args:
+        dataframe: pandas df.
+        shade(bool): condition of SD for the mean spectra.
+        random_row_num(int): number of random spectra to include in the plot.
+        save_dpi(int): dpi for saved figure.
+        plot_dpi(int): dpi for plotted figue.
+        figsize(tuple): figure size.
+        title(str): title name.
+        filename(str): filename or save path with filename.
+    Return:
+        Matplotlib figure with saved file.
+    """
+
+    plt.figure(dpi=plot_dpi, figsize=figsize)
+
+    """ condition to additionally plot random rows """
+    if random_row_num != None:
+        total_rows = len(dataframe)
+        random_indices = random.sample(range(total_rows), random_row_num) # for row indices
+        random_rows = dataframe.iloc[random_indices]  # the corresponding random rows from the df
+        for idx, (_, row) in enumerate(random_rows.iterrows()):
+            # this condition allows only one label of the random spectra shown
+            if idx == 0:
+                plt.plot(row.index, row.values, color='grey', linewidth=0.5, label='Random spectra')
+            else:
+                plt.plot(row.index, row.values, color='grey', linewidth=0.5)
+
+    """ calculate and plot mean and condition for std dev """
+    average_row = dataframe.mean()
+    plt.plot(average_row.index, average_row.values, color='red', linewidth=1.0, label='Mean')
+    if shade != False: # Plot the standard deviation as shaded area
+        std_row = dataframe.std()
+        plt.fill_between(
+            average_row.index.astype(float),
+            average_row.values - std_row.values,
+            average_row.values + std_row.values,
+            color='red', alpha=0.3
+            )
+
+    """ the rest of the plotting """
+    plt.xlabel('Wavenumber (cm$^{-1}$)')
+    plt.ylabel('Absorbance')
+    plt.title(title)
+    plt.legend()
+    if fname != None:
+        plt.savefig(fname=fname, dpi=save_dpi, bbox_inches='tight')
+    plt.show()
 
 def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
              title_size=10, cmap='binary', show=True, fname=None):
