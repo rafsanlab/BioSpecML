@@ -189,3 +189,27 @@ def calc_DatasetMeanStd(loader, channels, data_position=None):
     # calculate averages  
     ave_mean, ave_std = total_mean/count, total_std/count
     return ave_mean, ave_std
+
+
+def save_tensor_to_file(tensor, fname=None, delimiter='\t'):
+    """
+    convert tensor to file (default:.tsv) file.
+    <fname> is the path the save dir with file name.
+
+    """
+    numpy_array = tensor.numpy()
+    if fname!=None:
+        np.savetxt(fname, numpy_array, delimiter=delimiter)
+        print(f"Tensor saved to '{fname}'.")
+    else:
+        return numpy_array
+
+
+def load_tensor_from_file(file_path, dtype=np.float32, delimiter='\t'):
+    """
+    convert file (default:.tsv) to tensor.
+    
+    """
+    numpy_array = np.loadtxt(file_path, delimiter=delimiter, dtype=dtype)
+    tensor = torch.from_numpy(numpy_array)
+    return tensor
