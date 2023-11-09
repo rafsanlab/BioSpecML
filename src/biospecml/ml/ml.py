@@ -147,7 +147,7 @@ def rotate_and_flip(images=[], pair_mode=False, rotate=True, rotate_method='nump
 
     return augmented_images
 
-def calc_DatasetMeanStd(loader, channels, data_position=None):
+def calc_DatasetMeanStd(loader, channels, data_type=torch.float64, data_position=None):
     """
     Calculate mean and std of the channels in each image in the data loader,
     and average them, expect approximation of the values due to averaging because
@@ -163,7 +163,8 @@ def calc_DatasetMeanStd(loader, channels, data_position=None):
     """
 
     # __declare variables__
-    total_mean, total_std = torch.zeros(channels), torch.zeros(channels)
+    total_mean = torch.zeros(channels, dtype=data_type)
+    total_std = torch.zeros(channels, dtype=data_type)
     count = 0
 
     """ in the case of data loader that output two set of data (i.e: image, label)
