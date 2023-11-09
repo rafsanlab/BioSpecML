@@ -173,11 +173,11 @@ def calc_DatasetMeanStd(loader, channels, data_position=None):
     for batch in loader:
         if len(batch) == 1:
             # the data loader only output 1 data
-            print('Loader output 1 data')
+            # print('Loader output 1 data')
             img = batch
         elif len(batch) == 2:
             # the data loader output 2 data
-            print('Loader output 2 data, getting data_position.')
+            # print('Loader output 2 data, getting data_position.')
             img = batch[data_position]
         else:
             # the data loader output >= 2 data
