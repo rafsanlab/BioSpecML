@@ -104,7 +104,7 @@ def plot_linear(data_dirs=[], delimiter='\t', header=0, replace_epoch=False, epo
     Plot a linear graph by the column names.
 
     Args:
-        - data_dirs:list =  list to the file paths.
+        - data_dirs:list =  list to the file paths / list of dataframes.
         - delimiter:str = delimiter of the files.
         - header:int = header of the files.
         - replace_epoch:bool = option to replace epoch based on index if using multiple files.
@@ -127,7 +127,10 @@ def plot_linear(data_dirs=[], delimiter='\t', header=0, replace_epoch=False, epo
     #--- read and proces the files ---
     data = pd.DataFrame()
     for data_dir in data_dirs:
-        data_i = pd.read_csv(data_dir, delimiter=delimiter, header=header)
+        if isinstance(data_dir, pd.DataFrame):
+            data_i = data_dir
+        else:
+            data_i = pd.read_csv(data_dir, delimiter=delimiter, header=header)
         data = pd.concat([data, data_i], ignore_index=True)
     
     #--- option to replace epoch ---
