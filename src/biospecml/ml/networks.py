@@ -32,16 +32,16 @@ class Conv2DNet(nn.Module):
     def forward(self, x):
 
         x = self.relu1(self.norm1(self.conv1(x)))
-        print('After ReLU1 \t:', x.shape)
+        # print('After ReLU1 \t:', x.shape)
 
         x = self.relu2(self.norm2(self.conv2(x)))
-        print('After ReLU2 \t:', x.shape)
+        # print('After ReLU2 \t:', x.shape)
 
         x = self.relu3(self.norm3(self.conv3(x)))
-        print('After ReLU3 \t:', x.shape)
+        # print('After ReLU3 \t:', x.shape)
         
         x = self.flatten(x)
-        print('After flatten \t:', x.shape)
+        # print('After flatten \t:', x.shape)
         
         x = self.fc(x)
         return x
