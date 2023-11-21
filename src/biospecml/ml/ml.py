@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy import ndimage
 import torch
 import random
@@ -209,6 +210,65 @@ def calc_DatasetMeanStd(loader, channels, data_type=torch.float32,
                 ave[zero_indices] = replace_value # replacement
 
     return ave_mean, ave_std
+
+
+def calc_DatasetNorm(df, drop_cols:list=None, save_cols:list=None, norm_axis=1, replace_zeros=False,
+                     replace_nans=False, replace_value=1.4013e-45, test_mode=False, n_counter=2):
+    """ In case of dataset too big and loading a single df is a issue,
+    read df with <chunksize> parameter and feed that df into this function. 
+    [*] Expects wavenumber and metadata as columns, readings as rows
+    Args:
+        - df
+
+    """
+    
+    # df_norm = pd.DataFrame()
+    df_norm = []
+    counter = 0
+
+    for chunk in df:
+
+        saved_cols = []
+
+        #--- drop columns ---
+        if save_cols != None:
+            for col in save_cols:
+                saved_cols.append(chunk[col])
+
+        #--- drop columns ---
+        if drop_cols != None:
+            for col in drop_cols:
+                chunk.drop([col], axis=1, inplace=True)
+        
+        #--- chunck normalisation ---
+        normalized_chunk = chunk.apply(lambda x: x / np.linalg.norm(x), axis=norm_axis)
+
+        #--- replace NaNs ---
+        if replace_nans!=False:
+            normalized_chunk.fillna(replace_value, inplace=True)
+
+        #--- replace zeros ---
+        if replace_zeros!=False:
+            normalized_chunk.replace(0.0, replace_value, inplace=True)
+
+        for i, col in enumerate(save_cols):
+            normalized_chunk[col] = saved_cols[i]
+
+        #--- combine normalised chunk to main df ---
+        # df_norm = pd.concat([df_norm, normalized_chunk], axis=norm_axis, ignore_index=True)
+        df_norm.append(normalized_chunk)
+
+        #--- condition of <test_mode>    
+        if test_mode!=False:
+            counter+=1
+            if counter!=n_counter:
+                continue
+            elif counter==n_counter:
+                break
+
+    df_normed = pd.concat(df_norm, ignore_index=True)
+    
+    return df_normed
 
 # def calc_DatasetMeanStd(loader, channels, data_type=torch.float64, data_position=None):
 #     """
