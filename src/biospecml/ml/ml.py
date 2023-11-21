@@ -212,6 +212,33 @@ def calc_DatasetMeanStd(loader, channels, data_type=torch.float32,
     return ave_mean, ave_std
 
 
+def calc_DatasetMeanStd_byDf(df, replace_zeros=True, replace_nans=True,
+                             replace_value=1.4013e-45):
+    """
+    Calculate the mean and standard deviation of numeric columns in a DataFrame.
+    [*] Expects features as columns, readings are rows.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+        replace_zeros (bool, optional): Replace zeros with `replace_value`. Default is True.
+        replace_nans (bool, optional): Replace NaNs with `replace_value`. Default is True.
+        replace_value (float, optional): Value used for replacement of zeros and NaNs.
+
+    Returns:
+        Tuple[pd.Series, pd.Series]: Mean and standard deviation values for each numeric column.
+
+    """
+    mean_values = df.mean(numeric_only=True)
+    std_values = df.std(numeric_only=True)
+    if replace_zeros==True:
+        mean_values.replace(0, replace_value, inplace=True)
+        std_values.replace(0, replace_value, inplace=True)
+    if replace_nans==True:
+        mean_values.fillna(replace_value, inplace=True)
+        std_values.fillna(replace_value, inplace=True)
+    return mean_values, std_values
+
+
 def calc_DatasetNorm(df, drop_cols:list=None, save_cols:list=None, norm_axis=1, replace_zeros=False,
                      replace_nans=False, replace_value=1.4013e-45, test_mode=False, n_counter=2):
     """ In case of dataset too big and loading a single df is a issue,
