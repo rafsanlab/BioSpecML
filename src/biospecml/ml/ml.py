@@ -3,6 +3,7 @@ import pandas as pd
 from scipy import ndimage
 import torch
 import random
+from imblearn.over_sampling import SMOTE
 
 def rotate_and_random_flip(images=[], pair_mode=False, rotate=True, rotate_method='numpy',
                            rotation_range=180, minimum_angle=30, rotation_angle=90, mode='nearest',
@@ -366,3 +367,15 @@ def load_tensor_from_file(file_path, dtype=np.float32, delimiter='\t'):
     numpy_array = np.loadtxt(file_path, delimiter=delimiter, dtype=dtype)
     tensor = torch.from_numpy(numpy_array)
     return tensor
+
+
+def upsampling_via_smote(dfX, labels, random_state=42, sampling_strategy='auto'):
+    """
+    SMOTE on X matrix of a df.
+
+    """
+    dfX.columns = dfX.columns.astype(str)
+    y = labels
+    smote = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state)
+    X_resampled, y_resampled = smote.fit_resample(dfX, y)
+    return X_resampled, y_resampled
