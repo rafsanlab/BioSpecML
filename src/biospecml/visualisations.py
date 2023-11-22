@@ -4,6 +4,8 @@ import pandas as pd
 import os
 import random
 
+plt.rcParams['font.family'] = 'Arial' 
+
 def plot_spectra_mean(
     dataframe, shade=True, random_row_num=None, save_dpi=200, plot_dpi=80,
     figsize=(7, 4), title='Mean spectra', fname=None
@@ -163,13 +165,6 @@ def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
 #     plt.close()
 #     if return_data!=False:
 #         return data
-
-
-import matplotlib.pyplot as plt
-import pandas as pd
-import os
-
-plt.rcParams['font.family'] = 'Arial' 
 
 def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=False, x_col='',
                 figsize=(6, 6), col_names:list=[], colors='royalblue', line_styles='-', line_thickness=1.5,
