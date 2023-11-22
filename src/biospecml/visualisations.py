@@ -97,22 +97,91 @@ def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
         plt.close()
       
 
-def plot_linear(data_dirs=[], delimiter='\t', header=0, replace_epoch=False, epoch_col='',
-                figsize=(6, 6), col_names=[], colors=['royalblue'], line_styles=['-'], line_thickness = 1.5,
-                title='', xlabel='', ylabel='', show_plot=True, fname:str=None, save_dpi=300, return_data=False):
+# def plot_linear(data_dirs=[], delimiter='\t', header=0, replace_epoch=False, epoch_col='',
+#                 figsize=(6, 6), col_names=[], colors=['royalblue'], line_styles=['-'], line_thickness = 1.5,
+#                 title='', xlabel='', ylabel='', show_plot=True, fname:str=None, save_dpi=300, return_data=False):
+#     """
+#     Plot a linear graph by the column names.
+
+#     Args:
+#         - data_dirs:list =  list to the file paths / list of dataframes.
+#         - delimiter:str = delimiter of the files.
+#         - header:int = header of the files.
+#         - replace_epoch:bool = option to replace epoch based on index if using multiple files.
+#         - epoch_col:str = name of the epoch column use for plotting and replace_epoch.
+#         - figsize:tup = figure size.
+#         - col_names:list = list of the column names to be plot.
+#         - colors:list = list of colours of each plotted columns.
+#         - line_styles:list = list of the line styles of each plotted columns.
+#         - line_thickness:float = thickness of all lines.
+#         - title:str = title of the plot.
+#         - xlabel:str, ylabel:str = x and y axis label.
+#         - show_plot:bool = option to show plot.
+#         - fname:str = option to save the plot, use path and format i.e: '/folder/plot.png'.
+#         - save_dpi:int = dpi of the saved figure.
+#         - return_data:bool = option to return the plotted dataframe.
+#     Returns:
+#         - plotted image
+#         - plotted data if return_data=True
+#     """
+#     #--- read and proces the files ---
+#     data = pd.DataFrame()
+#     for data_dir in data_dirs:
+#         if isinstance(data_dir, pd.DataFrame):
+#             data_i = data_dir
+#         else:
+#             data_i = pd.read_csv(data_dir, delimiter=delimiter, header=header)
+#         data = pd.concat([data, data_i], ignore_index=True)
+    
+#     #--- option to replace epoch ---
+#     if replace_epoch!=False:
+#         new_epochs = data.index + 1
+#         data[epoch_col] = new_epochs
+
+#     #--- setting figure and plotting ---
+#     plt.figure(figsize=figsize, facecolor='white')
+#     ax = plt.gca()
+#     for col, color, line_style in zip(col_names, colors, line_styles):
+#         ax = data.plot(x=epoch_col, y=col, kind='line', ax=ax, color=color, linestyle=line_style, 
+#                     linewidth=line_thickness, label=col)
+#     for spine in ax.spines.values():
+#         spine.set_linewidth(1.5)
+
+#     #--- labels and metadata stuffs ---
+#     ax.grid(True, color='black', linewidth=0.2)
+#     plt.title(title, fontweight='extra bold')
+#     plt.xlabel(xlabel=xlabel, fontsize='medium', fontweight='extra bold')
+#     plt.ylabel(ylabel=ylabel, fontsize='medium', fontweight='extra bold')
+#     legend = plt.legend(frameon=False, fontsize='medium')
+#     plt.tight_layout()
+
+#     #--- and the rest.. ---
+#     if fname!=None:
+#         plt.savefig(fname=fname, dpi=save_dpi)
+#     if show_plot:
+#         plt.show()
+#     plt.close()
+#     if return_data!=False:
+#         return data
+
+
+def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=False, x_col='',
+                figsize=(6, 6), col_names:list=[], colors='royalblue', line_styles='-', line_thickness=1.5,
+                title='', xlabel='', ylabel='', show_plot=True, show_dpi=70, fname:str=None, save_dpi=300, return_data=False):
     """
     Plot a linear graph by the column names.
-
+    [*] to change font: plt.rcParams['font.family'] = 'Arial' 
+    [*] output data will have index resetted.
     Args:
-        - data_dirs:list =  list to the file paths / list of dataframes.
+        - data_dirs:list[df|paths] =  list of df or file paths.
         - delimiter:str = delimiter of the files.
         - header:int = header of the files.
         - replace_epoch:bool = option to replace epoch based on index if using multiple files.
         - epoch_col:str = name of the epoch column use for plotting and replace_epoch.
         - figsize:tup = figure size.
         - col_names:list = list of the column names to be plot.
-        - colors:list = list of colours of each plotted columns.
-        - line_styles:list = list of the line styles of each plotted columns.
+        - colors:str|list = str or list of colours of each plotted columns.
+        - line_styles:str|list = str or list of the line styles of each plotted columns.
         - line_thickness:float = thickness of all lines.
         - title:str = title of the plot.
         - xlabel:str, ylabel:str = x and y axis label.
@@ -124,25 +193,34 @@ def plot_linear(data_dirs=[], delimiter='\t', header=0, replace_epoch=False, epo
         - plotted image
         - plotted data if return_data=True
     """
-    #--- read and proces the files ---
-    data = pd.DataFrame()
-    for data_dir in data_dirs:
-        if isinstance(data_dir, pd.DataFrame):
-            data_i = data_dir
-        else:
+    #--- check if data_list element is path or dataframe ---
+    if isinstance(data_list[0], str):
+        data = pd.DataFrame()
+        for data_dir in data_list:
             data_i = pd.read_csv(data_dir, delimiter=delimiter, header=header)
-        data = pd.concat([data, data_i], ignore_index=True)
+            data = pd.concat([data, data_i], ignore_index=True)
+    elif isinstance(data_list[0], pd.DataFrame):
+        data = pd.DataFrame()
+        for data_i in data_list:
+            data = pd.concat([data, data_i], ignore_index=True)
     
     #--- option to replace epoch ---
-    if replace_epoch!=False:
-        new_epochs = data.index + 1
-        data[epoch_col] = new_epochs
+    if replace_x!=False:
+        new_x = data.index + 1
+        data[x_col] = new_x
+
+    #--- check plots parameter ---
+    n = len(col_names)
+    if isinstance(colors, list)!=True:
+        colors = [colors]*n
+    if isinstance(line_styles, list)!=True:
+        line_styles = [line_styles]*n
 
     #--- setting figure and plotting ---
-    plt.figure(figsize=figsize, facecolor='white')
+    plt.figure(figsize=figsize, facecolor='white', dpi=show_dpi)
     ax = plt.gca()
     for col, color, line_style in zip(col_names, colors, line_styles):
-        ax = data.plot(x=epoch_col, y=col, kind='line', ax=ax, color=color, linestyle=line_style, 
+        ax = data.plot(x=x_col, y=col, kind='line', ax=ax, color=color, linestyle=line_style, 
                     linewidth=line_thickness, label=col)
     for spine in ax.spines.values():
         spine.set_linewidth(1.5)
