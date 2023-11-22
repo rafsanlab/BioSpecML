@@ -165,15 +165,21 @@ def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
 #         return data
 
 
+import matplotlib.pyplot as plt
+import pandas as pd
+import os
+
+plt.rcParams['font.family'] = 'Arial' 
+
 def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=False, x_col='',
                 figsize=(6, 6), col_names:list=[], colors='royalblue', line_styles='-', line_thickness=1.5,
-                title='', xlabel='', ylabel='', show_plot=True, show_dpi=70, fname:str=None, save_dpi=300, return_data=False):
+                title='', xlabel='', ylabel='', show_plot=True, show_dpi=70, fname:str=None, save_dpi=300, 
+                legend_outside=False, return_data=False):
     """
     Plot a linear graph by the column names.
     [*] to change font: plt.rcParams['font.family'] = 'Arial' 
-    [*] output data will have index resetted.
     Args:
-        - data_dirs:list[df|paths] =  list of df or file paths.
+        - data_dirs:list =  list to the file paths.
         - delimiter:str = delimiter of the files.
         - header:int = header of the files.
         - replace_epoch:bool = option to replace epoch based on index if using multiple files.
@@ -231,6 +237,8 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
     plt.xlabel(xlabel=xlabel, fontsize='medium', fontweight='extra bold')
     plt.ylabel(ylabel=ylabel, fontsize='medium', fontweight='extra bold')
     legend = plt.legend(frameon=False, fontsize='medium')
+    if legend_outside!=False:
+        ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
 
     #--- and the rest.. ---
@@ -241,6 +249,7 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
     plt.close()
     if return_data!=False:
         return data
+
     
 
 def plot_images_from_folder(
