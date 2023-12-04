@@ -152,7 +152,7 @@ def plot_clusters_img(cluster_col, w, h, cmap='Spectral', fname=None):
 def plot_spectra_clusters(
     dataframe, cluster_column_name, cmap='Spectral', drop_columns=None, shade=False,
     save_dpi=200, plot_dpi=80, figsize=(7, 4), legend='in', legend_size=7, wavenumber=None, wavenumber_xticks=10,
-    title='Mean spectra of all clusters', fname=None, show_plot=True
+    off_spines = ['top', 'right'], title='Mean spectra of all clusters', fname=None, show_plot=True
     ):
     """
     Plot mean spectra based on cluster.
@@ -246,6 +246,12 @@ def plot_spectra_clusters(
     plt.xlabel('Wavenumber (cm$^{-1}$)')
     plt.ylabel('Absorbance')
     plt.title(title)
+
+    # === spline off ====
+    ax = plt.gca()
+    for spine in off_spines:
+        ax.spines[spine].set_visible(False)
+
     if fname != None:
         plt.savefig(fname=fname, dpi=save_dpi, bbox_inches='tight')
     if show_plot==True:
