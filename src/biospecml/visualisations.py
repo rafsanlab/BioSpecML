@@ -166,7 +166,7 @@ def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
 #     if return_data!=False:
 #         return data
 
-def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=False, x_col='',
+def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=False, x_col='', ylim:tuple=None,
                 figsize=(6, 6), col_names:list=[], colors='royalblue', line_styles='-', line_thickness=1.5,
                 title='', xlabel='', ylabel='', off_spines=['top', 'right'], show_plot=True, show_dpi=70, fname:str=None, save_dpi=300, 
                 legend_outside=False, return_data=False):
@@ -174,11 +174,12 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
     Plot a linear graph by the column names.
     [*] to change font: plt.rcParams['font.family'] = 'Arial' 
     Args:
-        - data_dirs:list =  list to the file paths.
-        - delimiter:str = delimiter of the files.
-        - header:int = header of the files.
-        - replace_epoch:bool = option to replace epoch based on index if using multiple files.
-        - epoch_col:str = name of the epoch column use for plotting and replace_epoch.
+        - data_dirs:list =  list to the file paths OR list of pd.DataFrame.
+            - delimiter:str = delimiter of the files.
+            - header:int = header of the files.
+        - replace_x:bool = option to replace epoch based on index if using multiple files.
+        - x_col:str = name of the x-axis column use for plotting.
+        - ylim:tup = min and max of y-axis, i.e; (0,1)
         - figsize:tup = figure size.
         - col_names:list = list of the column names to be plot.
         - colors:str|list = str or list of colours of each plotted columns.
@@ -231,6 +232,8 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
         spine.set_linewidth(1.5)
 
     #--- labels and metadata stuffs ---
+    if ylim!=None:
+        plt.ylim(ylim[0], ylim[1]) 
     ax.grid(True, color='black', linewidth=0.2)
     plt.title(title, fontweight='extra bold')
     plt.xlabel(xlabel=xlabel, fontsize='medium', fontweight='extra bold')
