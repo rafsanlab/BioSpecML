@@ -168,7 +168,7 @@ def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
 
 def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=False, x_col='',
                 figsize=(6, 6), col_names:list=[], colors='royalblue', line_styles='-', line_thickness=1.5,
-                title='', xlabel='', ylabel='', show_plot=True, show_dpi=70, fname:str=None, save_dpi=300, 
+                title='', xlabel='', ylabel='', off_spines=['top', 'right'], show_plot=True, show_dpi=70, fname:str=None, save_dpi=300, 
                 legend_outside=False, return_data=False):
     """
     Plot a linear graph by the column names.
@@ -223,6 +223,10 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
     for col, color, line_style in zip(col_names, colors, line_styles):
         ax = data.plot(x=x_col, y=col, kind='line', ax=ax, color=color, linestyle=line_style, 
                     linewidth=line_thickness, label=col)
+    
+    #--- spline param ---
+    for spine in off_spines:
+        ax.spines[spine].set_visible(False)
     for spine in ax.spines.values():
         spine.set_linewidth(1.5)
 
