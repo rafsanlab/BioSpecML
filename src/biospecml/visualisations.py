@@ -166,8 +166,96 @@ def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
 #     if return_data!=False:
 #         return data
 
+# def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=False, x_col='', ylim:tuple=None,
+#                 figsize=(6, 6), col_names:list=[], colors='royalblue', line_styles='-', line_thickness=1.5,
+#                 title='', xlabel='', ylabel='', off_spines=['top', 'right'], show_plot=True, show_dpi=70, fname:str=None, save_dpi=300, 
+#                 legend_outside=False, return_data=False):
+#     """
+#     Plot a linear graph by the column names.
+#     [*] to change font: plt.rcParams['font.family'] = 'Arial' 
+#     Args:
+#         - data_dirs:list =  list to the file paths OR list of pd.DataFrame.
+#             - delimiter:str = delimiter of the files.
+#             - header:int = header of the files.
+#         - replace_x:bool = option to replace epoch based on index if using multiple files.
+#         - x_col:str = name of the x-axis column use for plotting.
+#         - ylim:tup = min and max of y-axis, i.e; (0,1)
+#         - figsize:tup = figure size.
+#         - col_names:list = list of the column names to be plot.
+#         - colors:str|list = str or list of colours of each plotted columns.
+#         - line_styles:str|list = str or list of the line styles of each plotted columns.
+#         - line_thickness:float = thickness of all lines.
+#         - title:str = title of the plot.
+#         - xlabel:str, ylabel:str = x and y axis label.
+#         - show_plot:bool = option to show plot.
+#         - fname:str = option to save the plot, use path and format i.e: '/folder/plot.png'.
+#         - save_dpi:int = dpi of the saved figure.
+#         - return_data:bool = option to return the plotted dataframe.
+#     Returns:
+#         - plotted image
+#         - plotted data if return_data=True
+#     """
+#     #--- check if data_list element is path or dataframe ---
+#     if isinstance(data_list[0], str):
+#         data = pd.DataFrame()
+#         for data_dir in data_list:
+#             data_i = pd.read_csv(data_dir, delimiter=delimiter, header=header)
+#             data = pd.concat([data, data_i], ignore_index=True)
+#     elif isinstance(data_list[0], pd.DataFrame):
+#         data = pd.DataFrame()
+#         for data_i in data_list:
+#             data = pd.concat([data, data_i], ignore_index=True)
+    
+#     #--- option to replace epoch ---
+#     if replace_x!=False:
+#         new_x = data.index + 1
+#         data[x_col] = new_x
+
+#     #--- check plots parameter ---
+#     n = len(col_names)
+#     if isinstance(colors, list)!=True:
+#         colors = [colors]*n
+#     if isinstance(line_styles, list)!=True:
+#         line_styles = [line_styles]*n
+
+#     #--- setting figure and plotting ---
+#     plt.figure(figsize=figsize, facecolor='white', dpi=show_dpi)
+#     ax = plt.gca()
+#     for col, color, line_style in zip(col_names, colors, line_styles):
+#         ax = data.plot(x=x_col, y=col, kind='line', ax=ax, color=color, linestyle=line_style, 
+#                     linewidth=line_thickness, label=col)
+    
+#     #--- spline param ---
+#     for spine in off_spines:
+#         ax.spines[spine].set_visible(False)
+#     for spine in ax.spines.values():
+#         spine.set_linewidth(1.5)
+
+#     #--- labels and metadata stuffs ---
+#     if ylim!=None:
+#         plt.ylim(ylim[0], ylim[1]) 
+#     ax.grid(True, color='black', linewidth=0.2)
+#     plt.title(title, fontweight='extra bold')
+#     plt.xlabel(xlabel=xlabel, fontsize='medium', fontweight='extra bold')
+#     plt.ylabel(ylabel=ylabel, fontsize='medium', fontweight='extra bold')
+#     legend = plt.legend(frameon=False, fontsize='medium')
+#     if legend_outside!=False:
+#         ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+#     plt.tight_layout()
+
+#     #--- and the rest.. ---
+#     if fname!=None:
+#         plt.savefig(fname=fname, dpi=save_dpi)
+#     if show_plot:
+#         plt.show()
+#     plt.close()
+#     if return_data!=False:
+#         return data
+
+import matplotlib.pyplot as plt
+
 def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=False, x_col='', ylim:tuple=None,
-                figsize=(6, 6), col_names:list=[], colors='royalblue', line_styles='-', line_thickness=1.5,
+                figsize=(6, 6), col_names:list=[], colors='royalblue', line_styles='-', line_thickness=1.5, line_transparency=1.0,
                 title='', xlabel='', ylabel='', off_spines=['top', 'right'], show_plot=True, show_dpi=70, fname:str=None, save_dpi=300, 
                 legend_outside=False, return_data=False):
     """
@@ -178,13 +266,14 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
             - delimiter:str = delimiter of the files.
             - header:int = header of the files.
         - replace_x:bool = option to replace epoch based on index if using multiple files.
-        - x_col:str = name of the x-axis column use for plotting.
+        - x_col:str = None or name of the x-axis column use for plotting.
         - ylim:tup = min and max of y-axis, i.e; (0,1)
         - figsize:tup = figure size.
         - col_names:list = list of the column names to be plot.
         - colors:str|list = str or list of colours of each plotted columns.
         - line_styles:str|list = str or list of the line styles of each plotted columns.
         - line_thickness:float = thickness of all lines.
+        - line_transparency:float = alpha of all lines.
         - title:str = title of the plot.
         - xlabel:str, ylabel:str = x and y axis label.
         - show_plot:bool = option to show plot.
@@ -222,8 +311,12 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
     plt.figure(figsize=figsize, facecolor='white', dpi=show_dpi)
     ax = plt.gca()
     for col, color, line_style in zip(col_names, colors, line_styles):
-        ax = data.plot(x=x_col, y=col, kind='line', ax=ax, color=color, linestyle=line_style, 
-                    linewidth=line_thickness, label=col)
+        if x_col!=None:
+            ax = data.plot(x=x_col, y=col, kind='line', ax=ax, color=color, linestyle=line_style, 
+                        linewidth=line_thickness, label=col, alpha=line_transparency)
+        elif x_col==None:
+            ax = data.plot(y=col, kind='line', ax=ax, color=color, linestyle=line_style, 
+                           linewidth=line_thickness, label=col, alpha=line_transparency)
     
     #--- spline param ---
     for spine in off_spines:
@@ -251,8 +344,7 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
     plt.close()
     if return_data!=False:
         return data
-
-    
+        
 
 def plot_images_from_folder(
     folder_path, rows=1, cols=1, img_format='.png', figsize=(10, 10),
