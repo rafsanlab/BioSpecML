@@ -295,7 +295,7 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
             for data_i in data_list:
                 data = pd.concat([data, data_i], ignore_index=True)
         elif len(data_list) == 1:
-            data = data_list[0]
+            data = data_list[0].copy()
     
     #--- option to replace epoch ---
     if replace_x!=False:
