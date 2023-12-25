@@ -265,11 +265,11 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
             - delimiter:str = delimiter of the files.
             - header:int = header of the files.
         - replace_x:bool = option to replace epoch based on index if using multiple files.
-        - x_col:str = None or name of the x-axis column use for plotting.
+        - x_col:str = 'Index', 'None' or name of the x-axis column use for plotting. 'Index' only works for single df.
         - ylim:tup = min and max of y-axis, i.e; (0,1)
         - figsize:tup = figure size.
         - col_names:list = list of the column names to be plot.
-        - colors:str|list = str or list of colours of each plotted columns.
+        - colors:str|list = cmap or list of colours of each plotted columns.
         - line_styles:str|list = str or list of the line styles of each plotted columns.
         - line_thickness:float = thickness of all lines.
         - line_transparency:float = alpha of all lines.
@@ -290,14 +290,19 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
             data_i = pd.read_csv(data_dir, delimiter=delimiter, header=header)
             data = pd.concat([data, data_i], ignore_index=True)
     elif isinstance(data_list[0], pd.DataFrame):
-        data = pd.DataFrame()
-        for data_i in data_list:
-            data = pd.concat([data, data_i], ignore_index=True)
+        if len(data_list) > 1:
+            data = pd.DataFrame()
+            for data_i in data_list:
+                data = pd.concat([data, data_i], ignore_index=True)
+        elif len(data_list) == 1:
+            data = data_list[0]
     
     #--- option to replace epoch ---
     if replace_x!=False:
         new_x = data.index + 1
         data[x_col] = new_x
+    if x_col == 'Index':
+        data['Index'] = data.index
 
     #--- check plots parameter ---
     n = len(col_names)
