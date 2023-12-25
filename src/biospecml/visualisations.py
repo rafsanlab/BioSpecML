@@ -251,11 +251,10 @@ def plot_rxc(nrows=1, ncols=2, dpi=120, figsize=(9,3), imgs=[], titles=[],
 #     plt.close()
 #     if return_data!=False:
 #         return data
-
-import matplotlib.pyplot as plt
+        
 
 def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=False, x_col='', ylim:tuple=None,
-                figsize=(6, 6), col_names:list=[], colors='royalblue', line_styles='-', line_thickness=1.5, line_transparency=1.0,
+                figsize=(6, 6), col_names:list=[], colors='PuOr', line_styles='-', line_thickness=1.5, line_transparency=1.0,
                 title='', xlabel='', ylabel='', off_spines=['top', 'right'], show_plot=True, show_dpi=70, fname:str=None, save_dpi=300, 
                 legend_outside=False, return_data=False):
     """
@@ -303,7 +302,9 @@ def plot_linear(data_list:list=[], delimiter='\t', header:int=0, replace_x:bool=
     #--- check plots parameter ---
     n = len(col_names)
     if isinstance(colors, list)!=True:
-        colors = [colors]*n
+        # colors = [colors]*n
+        cmap = plt.colormaps.get_cmap(colors)
+        colors = [cmap(i/n) for i in range(n)]
     if isinstance(line_styles, list)!=True:
         line_styles = [line_styles]*n
 
