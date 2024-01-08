@@ -4,6 +4,68 @@ from scipy import ndimage
 import torch
 import random
 from imblearn.over_sampling import SMOTE
+import matplotlib.pyplot as plt
+
+def create_patches(image_array, patch_size=(32, 32), step=(16, 16)):
+    """
+    Create patches from an image array.
+    [!] Expects channel at the back.
+
+    Parameters:
+    - image_array: numpy array of an image; (256, 256, 3).
+    - patch_size: size of pathces.
+    - step: x and y step to patch.
+
+    Returns:
+    - patches: List of patches arrays.
+
+    """ 
+    patches = []
+    height, width = image_array.shape[:2]
+
+    for y in range(0, height - patch_size[0] + 1, step[0]):
+        for x in range(0, width - patch_size[1] + 1, step[1]):
+            patch = image_array[y:y + patch_size[0], x:x + patch_size[1]]
+            patches.append(patch)
+
+    return patches
+
+def plot_patches(patches, num_cols=5, title_size=10, fig_size=(12, 8), show_plot=True, fname=None):
+    """
+    Plot the patches in a grid.
+
+    Parameters:
+    - patches: List of numpy arrays representing patches.
+    - num_cols: Number of columns in the grid.
+    - fig_size: Tuple specifying the figure size (width, height).
+    - show_plot: Boolean indicating whether to display the plot.
+    - fname: File name to save the plot. If None, the plot is not saved.
+
+    Returns:
+    - None (displays the plot or saves it to a file).
+    """
+
+    num_patches = len(patches)
+    num_rows = (num_patches + num_cols - 1) // num_cols
+
+    plt.figure(figsize=fig_size)
+
+    for i, patch in enumerate(patches, start=1):
+        plt.subplot(num_rows, num_cols, i)
+        plt.imshow(patch, cmap='gray')
+        plt.title(f'Patch {i}', fontsize=title_size)
+        plt.axis('off')
+
+    plt.tight_layout()
+
+    if fname is not None:
+        plt.savefig(fname)
+
+    if show_plot:
+        plt.show()
+    else:
+        plt.close()
+
 
 def rotate_and_random_flip(images=[], pair_mode=False, rotate=True, rotate_method='numpy',
                            rotation_range=180, minimum_angle=30, rotation_angle=90, mode='nearest',
