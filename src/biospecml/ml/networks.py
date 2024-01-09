@@ -237,3 +237,192 @@ class ResNet(nn.Module):
         x = self.fc(x)
 
         return x
+    
+    
+# ------------------ UNET ------------------
+
+def crop_and_concat(src_tnsr, tgt_tnsr, concat=True, verbose=False):
+
+    error_dim = 'Tensor dimension not the same, expect both width and height to be same.'
+
+    # check if image is batched or not
+    if src_tnsr.dim() == 3:
+        if src_tnsr.size()[1] != src_tnsr.size()[2]:
+            raise Exception(error_dim)
+        if tgt_tnsr.size()[1] != tgt_tnsr.size()[2]:
+            raise Exception(error_dim)
+
+        # get crop param
+        src_size = src_tnsr.size()[1] # get width
+        tgt_size = tgt_tnsr.size()[1]
+        delta = src_size - tgt_size
+        delta = delta // 2
+
+        # crop
+        crop_tnsr = src_tnsr[:, delta:src_size-delta, delta:src_size-delta]
+
+    # if tensor is batched
+    elif src_tnsr.dim() == 4:
+        if src_tnsr.size()[2] != src_tnsr.size()[3]:
+            raise Exception(error_dim)
+        if tgt_tnsr.size()[2] != tgt_tnsr.size()[3]:
+            raise Exception(error_dim)
+
+        # get crop param
+        src_size = src_tnsr.size()[2] # get width
+        tgt_size = tgt_tnsr.size()[2]
+        delta = src_size - tgt_size
+        delta = delta // 2
+
+        # crop
+        crop_tnsr = src_tnsr[:, :, delta:src_size-delta, delta:src_size-delta]
+
+    else:
+        print('Tensor shape not supported, try (3, 256, 256) or (1, 3, 256, 256)')
+
+    # print output shape
+    if verbose:
+        print(crop_tnsr.shape, tgt_tnsr.shape)
+
+    # concat tensor
+    if concat:
+        if src_tnsr.dim() == 3:
+            concat_tnsr = torch.cat([crop_tnsr, tgt_tnsr], dim=0)
+            return concat_tnsr
+        if src_tnsr.dim() == 4:
+            concat_tnsr = torch.cat([crop_tnsr, tgt_tnsr], dim=1)
+            return concat_tnsr
+    else:
+        return concat_tnsr
+
+
+class BasicEncoderBlock(nn.Module):
+
+    def __init__(self, in_c, c, n, stride=1, padding=0, verbose=False):
+        """
+        in_c : input channel
+        c : inner channel
+        n : inner channel multiplier
+        padding : original is 0 from paper
+        """
+        super(BasicEncoderBlock, self).__init__()
+        self.verbose = verbose
+        self.block = nn.Sequential(
+            nn.Conv2d(in_c, c*n, 3, stride, padding),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(c*n, c*n, 3, stride, padding),
+            nn.ReLU(inplace=True),
+        )
+        self.maxpool = nn.MaxPool2d(2,2)
+
+    def forward(self, x):
+        x1 = self.block(x)
+        x = self.maxpool(x1)
+        if self.verbose is True:
+            print('x, x1 \t\t:', x.shape, x1.shape)
+        return x, x1
+
+class BasicDecoderBlock(nn.Module):
+    def __init__(self, in_c, c, n=2, stride=1, padding=0, transpose=True, verbose=False):
+        super(BasicDecoderBlock, self).__init__()
+        self.transpose = transpose
+        self.verbose = verbose
+        self.block = nn.Sequential(
+            nn.Conv2d(in_c, c * n, 3, stride, padding),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(c * n, c * n, 3, stride, padding),
+            nn.ReLU(inplace=True),
+        )
+        # here output channel is half to concat to residual connections
+        self.transpose2d = nn.ConvTranspose2d(c * n, c, 2, 2, output_padding=0)
+
+    def forward(self, x):
+        x = self.block(x)
+        print('x untranspose \t:', x.shape)
+        if self.transpose:
+            x = self.transpose2d(x)
+        if self.verbose is True:
+            print('x \t\t:', x.shape)
+        return x
+
+
+class FinalLayer(nn.Module):
+
+    def __init__(self, in_c, out_c, kernel=1, verbose=False):
+        super(FinalLayer, self).__init__()
+        self.verbose = verbose
+        self.conv1 = nn.Conv2d(in_c, out_c, kernel_size=kernel)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        if self.verbose is True:
+            print('x \t\t:', x.shape)
+        return x
+
+
+class Unet(nn.Module):
+    def __init__(self, in_c=1, out_c=2, c=32, n_latent=2, padding=0, verbose=False):
+        """
+        A U-Net implementation in Pytorch.
+        [*] Default value will output tensor shape (2, 388, 388) from input shape (1, 572, 572).
+        [*] If image dimension is (x, 256, 256), use padding=1
+        [*] Smallest input dimension possible = (16, 16)
+
+        Arguments:
+            - in_c (int) : input channel
+            - c (int) : inner channel of the convolutional layer
+            - n_latent (int) : latent channel multiplier, by default n_latent=2 give 1024 latent channels
+            - padding (int) : original is 0 from paper, but use 1 for same final image dimension
+
+        Usage:
+            Example 1:
+                >>> tensor = torch.rand(3, 256, 256)
+                >>> model = Unet(in_c=3, padding=1, verbose=True)
+                >>> outputs = model(tensor)
+
+            Example 2:
+                >>> tensor = torch.rand(1, 572, 572)
+                >>> model = Unet(verbose=True)
+                >>> outputs = model(tensor)
+
+        """
+        super(Unet, self).__init__()
+
+        self.verbose = verbose
+        self.padding = padding
+        n = 2 # inner channel multiploier
+
+        # encoder
+        self.layer1 = BasicEncoderBlock(in_c, c, n, padding=padding, verbose=self.verbose)
+        self.layer2 = BasicEncoderBlock(c*n**1, c*n**1, n, padding=padding, verbose=self.verbose)
+        self.layer3 = BasicEncoderBlock(c*n**2, c*n**2, n, padding=padding, verbose=self.verbose)
+        self.layer4 = BasicEncoderBlock(c*n**3, c*n**3, n, padding=padding, verbose=self.verbose)
+
+        # latent space
+        self.layer5 = BasicDecoderBlock(c*n**4, c*n**4, n_latent, padding=padding, verbose=self.verbose)
+
+        # decoder
+        self.layer6 = BasicDecoderBlock(c*n**5, c*n**3, n, padding=padding, verbose=self.verbose)
+        self.layer7 = BasicDecoderBlock(c*n**4, c*n**2, n, padding=padding, verbose=self.verbose)
+        self.layer8 = BasicDecoderBlock(c*n**3, c*n**1, n, padding=padding, verbose=self.verbose)
+        self.layer9 = BasicDecoderBlock(c*n**2, c, n, padding=padding, transpose=False, verbose=self.verbose)
+
+        # final layer
+        self.layer10 = FinalLayer(c*n, out_c, kernel=1, verbose=self.verbose)
+
+
+    def forward(self, x):
+        # encoder
+        x, x1 = self.layer1(x)
+        x, x2 = self.layer2(x)
+        x, x3 = self.layer3(x)
+        x, x4 = self.layer4(x)
+        # latent space
+        x = self.layer5(x)
+        # decoder
+        x = self.layer6(crop_and_concat(x4, x))
+        x = self.layer7(crop_and_concat(x3, x))
+        x = self.layer8(crop_and_concat(x2, x))
+        x = self.layer9(crop_and_concat(x1, x))
+        x = self.layer10(x)
+        return x
