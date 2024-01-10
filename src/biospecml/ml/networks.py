@@ -338,7 +338,8 @@ class BasicDecoderBlock(nn.Module):
 
     def forward(self, x):
         x = self.block(x)
-        print('x untranspose \t:', x.shape)
+        if self.verbose is True:
+            print('x untranspose \t:', x.shape)
         if self.transpose:
             x = self.transpose2d(x)
         if self.verbose is True:
