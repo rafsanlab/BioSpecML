@@ -11,7 +11,9 @@ import torch.nn as nn
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from sklearn.metrics import accuracy_score, f1_score
-
+import time
+import json
+import os
 
 def create_patches(image_array, patch_size=(32, 32), step=(16, 16)):
     """
@@ -669,3 +671,114 @@ def model_test(model, data_loader, mode='prediction', send_to_device=True,
             metrics[key] /= len(data_loader)
 
     return metrics, outputs, labels
+
+
+def run_training_testing(model, train_loader, test_loader, num_epochs, criterion,
+                         optimizer, metrics_list, verbose=True,
+                         mode='reconstruction', run_training=True, run_testing=False,
+                         epoch_save_checkpoint=[], project_dir=None, save_model=False,
+                         trained_num_epochs=None):
+
+    main_metrics = {} # to compile all the epoch metrics
+    
+    # check the main directory to store all files
+    if project_dir==None:
+        project_dir = os.getcwd()
+    
+    # --------------- start epoch ---------------
+    
+    for epoch in tqdm(range(1, num_epochs+1, 1)):
+        
+        # add epochs (for model loaded from checkpoints)
+        if isinstance(trained_num_epochs, int):
+            epoch += trained_num_epochs
+        
+        # housekeeping
+        start_time = time.time() 
+        epoch_metrics = {}
+        epoch_metrics['epochs'] = epoch
+        
+        # --------------- training ---------------
+        if run_training:
+            training_metrics = model_train(model, train_loader, criterion, optimizer, mode=mode, metrics_list=metrics_list)
+            
+            # save metrics
+            for key in training_metrics.keys():
+                training_key = 'training ' + key
+                if training_key not in epoch_metrics.keys():
+                    epoch_metrics[training_key] = None
+                epoch_metrics[training_key] = training_metrics[key]
+            
+            # save time per epoch
+            epoch_time = time.time() - start_time  # Calculate the time taken for the epoch
+            epoch_metrics['training epoch time'] = epoch_time  # Add epoch time to metrics
+        
+        # --------------- testing ---------------
+        if run_testing:
+            testing_metrics, outputs, labels = model_test(model, test_loader, mode=mode, metrics_list=metrics_list)
+            
+            # save metrics
+            for key in testing_metrics.keys():
+                testing_key = 'testing ' + key
+                if testing_key not in epoch_metrics.keys():
+                    epoch_metrics[testing_key] = None
+                epoch_metrics[testing_key] = testing_metrics[key]
+            
+            # save time per epoch
+            epoch_time = time.time() - start_time  # Calculate the time taken for the epoch
+            epoch_metrics['training epoch time'] = epoch_time  # Add epoch time to metrics
+
+        
+        # --------------- epoch etcs. ---------------
+        
+        # epoch statistics
+        for key, value in epoch_metrics.items():
+            if key not in main_metrics:
+                main_metrics[key] = [value]
+            else:
+                main_metrics[key].append(value)
+        
+        # verbose mode to show stat during training
+        if verbose:
+            print(f"----- Epoch {epoch} -----")
+            for metric in epoch_metrics:
+                print(f"{metric} \t: {main_metrics[metric][-1]}")
+            print()
+        
+        # save stat data
+        stat_fname_path = os.path.join(project_dir, 'stats.json')
+        with open(stat_fname_path, 'w') as json_file:
+                json.dump(main_metrics, json_file, indent=4)
+    
+        # --------------- save model checkpoint ---------------
+        
+        if len(epoch_save_checkpoint)>0:
+        # if isinstance(epoch_save_checkpoint, int):
+            checkpoint_path = os.path.join(project_dir, 'checkpoints')
+            if not os.path.exists(checkpoint_path):
+                os.makedirs(checkpoint_path)
+            if epoch in epoch_save_checkpoint:
+                checkpoint = {
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'epoch': epoch,
+                }
+                print('Saving checkpoints at epoch ', epoch)
+                checkpoint_save_path = os.path.join(checkpoint_path, 'checkpoint_e'+str(epoch)+'.pth')
+                torch.save(checkpoint, checkpoint_save_path)
+                
+                checkpoint_stat_fname_path = os.path.join(checkpoint_path, 'checkpoint_e'+str(epoch)+'_stats.json')
+                with open(checkpoint_stat_fname_path, 'w') as json_file:
+                    json.dump(main_metrics, json_file, indent=4)
+ 
+    # save final model
+    if save_model:
+        model_path = os.path.join(project_dir, 'model.pth')
+        torch.save(model, model_path)
+    
+    # --------------- returns ---------------
+    
+    if run_testing:
+        return model, main_metrics, outputs, labels
+    else:
+        return model, main_metrics
