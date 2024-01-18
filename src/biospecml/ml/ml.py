@@ -5,7 +5,7 @@ import torch
 import random
 from imblearn.over_sampling import SMOTE
 import matplotlib.pyplot as plt
-
+import tqdm
 
 import torch.nn as nn
 from skimage.metrics import structural_similarity as ssim
@@ -584,7 +584,7 @@ def model_train(model, data_loader, criterion, optimizer, send_to_device=True, m
 
         optimizer.zero_grad()
         outputs = model(inputs)
-        loss = criterion(outputs, labels)
+        loss = criterion(outputs, labels.long())
         loss.backward()
         optimizer.step()
 
