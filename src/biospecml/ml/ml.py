@@ -143,6 +143,7 @@ def rotate_and_random_flip(images=[], pair_mode=False, rotate=True, rotate_metho
         augmented_images.append(augmented_image)
     return augmented_images
 
+
 def rotate_and_flip(images=[], pair_mode=False, rotate=True, rotate_method='numpy',
                            rotation_range=180, minimum_angle=30, rotation_angle=90, mode='nearest',
                            flip_horizontal=True, flip_vertical=False):
@@ -210,6 +211,7 @@ def rotate_and_flip(images=[], pair_mode=False, rotate=True, rotate_method='nump
         augmented_images.append(augmented_image)
 
     return augmented_images
+
 
 def calc_DatasetMeanStd(loader, channels, data_type=torch.float32, 
                         data_position=None, replace_zeros=False,
@@ -441,3 +443,222 @@ def upsampling_via_smote(dfX, labels, random_state=42, sampling_strategy='auto')
     smote = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state)
     X_resampled, y_resampled = smote.fit_resample(dfX, y)
     return X_resampled, y_resampled
+
+
+import torch
+import torch.nn as nn
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import peak_signal_noise_ratio as psnr
+from sklearn.metrics import accuracy_score, f1_score
+
+
+def calc_metric_prediction(inputs, outputs, metrics_list=['accuracy', 'f1'], f1_average='macro'):
+    """
+    Evaluate the performance of a model for classification tasks using various metrics.
+
+    Args:
+    - inputs (torch.Tensor): Original input labels (ground truth).
+    - outputs (torch.Tensor): Predicted output labels.
+    - metric (str): Metric to compute. Options: 'accuracy', 'f1', 'all' (default).
+    - threshold (float): Threshold for binary classification (default: 0.5).
+
+    Returns:
+    - result (dict): Computed metric value or a dictionary containing different evaluation metrics.
+    """
+    metrics = {}
+
+    if not isinstance(inputs, np.ndarray) or not isinstance(outputs, np.ndarray):
+        raise Exception('Inputs/outputs must be numpy array for predictions.')
+
+    for metric in metrics_list:
+
+        if metric not in ['accuracy', 'f1']:
+            raise ValueError(f"Invalid metric. Choose from 'accuracy' or/and 'f1'.")
+
+        if metric == 'f1':
+            f1 = f1_score(inputs, outputs, average=f1_average)
+            metrics['f1'] = f1
+
+        if metric == 'accuracy':
+            accuracy = accuracy_score(inputs, outputs)
+            metrics['accuracy'] = accuracy
+
+    return metrics
+
+
+def calc_metric_reconstruction(inputs, outputs, metrics_list=['MSE', 'BCE', 'MAE', 'SSIM', 'PSNR']):
+    """
+    Evaluate the performance of a recontructive model using various metrics.
+
+    Args:
+        - inputs (torch.Tensor): Original input images.
+        - outputs (torch.Tensor): Reconstructed output images.
+        - metric (str): Metric to compute. Options: 'MSE', 'BCE', 'MAE', 'SSIM', 'PSNR'.
+
+    Returns:
+        - metrics (dict): Computed metric value or a dictionary containing different evaluation metrics.
+
+    Example:
+        >>> tnsr1, tnsr2 = torch.rand(1, 3, 16, 16), torch.rand(1, 3, 16, 16)
+        >>> metrics = calc_metric_reconstruction(tnsr1, tnsr2)
+
+    """
+    metrics = {}
+
+    for metric in metrics_list:
+        if metric not in ['MSE', 'BCE', 'MAE', 'SSIM', 'PSNR']:
+            raise ValueError(f"Invalid metric. Choose among 'MSE', 'BCE', 'MAE', 'SSIM', 'PSNR'")
+
+        if metric=='MSE':
+            # Mean Squared Error (MSE)
+            mse_loss = nn.MSELoss()
+            metrics['MSE'] = mse_loss(inputs, outputs).item()
+
+        if metric=='BCE':
+            # Binary Cross-Entropy Loss (BCE)
+            bce_loss = nn.BCELoss()
+            metrics['BCE'] = bce_loss(outputs, inputs).item()
+
+        if metric=='MAE':
+            # Mean Absolute Error (MAE)
+            mae_loss = nn.L1Loss()
+            metrics['MAE'] = mae_loss(inputs, outputs).item()
+
+        if metric=='SSIM':
+
+            # check inputs and outputs
+            x, y = len(inputs.shape), len(outputs.shape)
+            if x != 4 or y != 4:
+                raise Exception('SSIM need batched input.')
+
+            # Structural Similarity Index (SSI)
+            batch_num = inputs.shape[0]
+            channel_num = inputs.shape[1]
+            ssim_values = np.zeros(batch_num)
+            arr1, arr2 = inputs.squeeze().cpu().numpy(), outputs.squeeze().cpu().numpy()
+
+            # Calculate SSIM for each channel separately
+            for i in range(batch_num):
+                for channel in range(channel_num):
+                    ssim_values[i] += ssim(arr1[i, channel], arr2[i, channel])
+
+            ssim_values /= channel_num  # Average SSIM across channels
+            average_ssim = np.mean(ssim_values)  # Average SSIM across the batch
+            metrics['SSIM'] = average_ssim
+
+        if metric=='PSNR':
+            # Peak Signal-to-Noise Ratio (PSNR)
+            psnr_value = psnr(inputs.squeeze().cpu().numpy(), outputs.squeeze().cpu().numpy())
+            metrics['PSNR'] = psnr_value
+
+    return metrics
+
+
+def model_train(model, data_loader, criterion, optimizer, send_to_device=True, mode='prediction',
+                metrics_list=['accuracy', 'f1'], f1_average='macro'):
+    """
+    TRAINING FUNCTION FOR MODEL
+
+    """
+    if send_to_device:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model.to(device)
+    model.train()
+
+    total_loss = 0.0
+    metrics = {}
+    batch_metrics = {}
+
+    for inputs_batch, labels_batch in data_loader:
+        if send_to_device:
+            inputs, labels = inputs_batch.to(device), labels_batch.to(device)
+
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        total_loss += loss.item()
+
+        if mode == 'prediction':
+
+            _, preds = torch.max(outputs, 1)
+            preds, labels = preds.cpu().numpy(), labels.cpu().numpy()
+            batch_metrics = calc_metric_prediction(labels, preds, metrics_list=metrics_list, f1_average=f1_average)
+            outputs = preds.copy()
+
+            for key in batch_metrics:
+                if key not in metrics.keys():
+                    metrics[key] = 0.0
+                metrics[key] += batch_metrics[key]
+
+        elif mode == 'reconstruction':
+
+            outputs, labels = outputs.detach(), labels.detach()
+            batch_metrics = calc_metric_reconstruction(labels, outputs, metrics_list=metrics_list)
+
+            for key in batch_metrics:
+                if key not in metrics.keys():
+                    metrics[key] = 0.0
+                metrics[key] += batch_metrics[key]
+
+    for key in batch_metrics.keys():
+        metrics[key] /= len(data_loader)
+
+    loss = total_loss / len(data_loader)
+    metrics['loss'] = loss
+
+    return metrics
+
+
+def model_test(model, data_loader, mode='prediction', send_to_device=True,
+                metrics_list=['accuracy', 'f1'], f1_average='macro'):
+    """
+    TESTING FUNCTION FOR MODEL
+
+    """
+    if send_to_device:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model.to(device)
+    model.eval()
+
+    metrics = {}
+    batch_metrics = {}
+
+    with torch.no_grad():
+        for inputs_batch, labels_batch in data_loader:
+            if send_to_device:
+                inputs, labels = inputs_batch.to(device), labels_batch.to(device)
+
+            optimizer.zero_grad()
+            outputs = model(inputs)
+
+            if mode == 'prediction':
+
+                _, outputs = torch.max(outputs, 1)
+                outputs, labels = outputs.cpu().numpy(), labels.cpu().numpy()
+                if metrics_list is not None:
+                    batch_metrics = calc_metric_prediction(labels, outputs, metrics_list=metrics_list, f1_average=f1_average)
+
+                    for key in batch_metrics:
+                        if key not in metrics.keys():
+                            metrics[key] = 0.0
+                        metrics[key] += batch_metrics[key]
+
+            elif mode == 'reconstruction':
+
+                outputs, labels = outputs.detach(), labels.detach()
+
+                if metrics_list is not None:
+                    batch_metrics = calc_metric_reconstruction(labels, outputs, metrics_list=metrics_list)
+
+                    for key in batch_metrics:
+                        if key not in metrics.keys():
+                            metrics[key] = 0.0
+                        metrics[key] += batch_metrics[key]
+
+        for key in batch_metrics.keys():
+            metrics[key] /= len(data_loader)
+
+    return metrics, outputs, labels
