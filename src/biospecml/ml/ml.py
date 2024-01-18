@@ -5,7 +5,7 @@ import torch
 import random
 from imblearn.over_sampling import SMOTE
 import matplotlib.pyplot as plt
-import tqdm
+# import tqdm
 
 import torch.nn as nn
 from skimage.metrics import structural_similarity as ssim
@@ -687,7 +687,8 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
     
     # --------------- start epoch ---------------
     
-    for epoch in tqdm(range(1, num_epochs+1, 1)):
+    # for epoch in tqdm(range(1, num_epochs+1, 1)):
+    for epoch in range(1, num_epochs+1, 1):
         
         # add epochs (for model loaded from checkpoints)
         if isinstance(trained_num_epochs, int):
