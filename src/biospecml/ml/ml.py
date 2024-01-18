@@ -454,13 +454,6 @@ def upsampling_via_smote(dfX, labels, random_state=42, sampling_strategy='auto')
     return X_resampled, y_resampled
 
 
-import torch
-import torch.nn as nn
-from skimage.metrics import structural_similarity as ssim
-from skimage.metrics import peak_signal_noise_ratio as psnr
-from sklearn.metrics import accuracy_score, f1_score
-
-
 def calc_metric_prediction(inputs, outputs, metrics_list=['accuracy', 'f1'], f1_average='macro'):
     """
     Evaluate the performance of a model for classification tasks using various metrics.
@@ -640,7 +633,6 @@ def model_test(model, data_loader, mode='prediction', send_to_device=True,
             if send_to_device:
                 inputs, labels = inputs_batch.to(device), labels_batch.to(device)
 
-            optimizer.zero_grad()
             outputs = model(inputs)
 
             if mode == 'prediction':
