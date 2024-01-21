@@ -571,9 +571,11 @@ def model_train(model, data_loader, criterion, optimizer, send_to_device=True, m
     metrics = {}
     batch_metrics = {}
 
-    for inputs_batch, labels_batch in data_loader:
+    # for inputs_batch, labels_batch in data_loader:
+    for data in data_loader:
+
         if send_to_device:
-            inputs, labels = inputs_batch.to(device), labels_batch.to(device)
+            inputs, labels = data[0].to(device), data[1].to(device)
 
         optimizer.zero_grad()
         outputs = model(inputs)
@@ -629,9 +631,10 @@ def model_test(model, data_loader, mode='prediction', send_to_device=True,
     batch_metrics = {}
 
     with torch.no_grad():
-        for inputs_batch, labels_batch in data_loader:
+        # for inputs_batch, labels_batch in data_loader:
+        for data in data_loader:
             if send_to_device:
-                inputs, labels = inputs_batch.to(device), labels_batch.to(device)
+                inputs, labels = data[0].to(device), data[1].to(device)
 
             outputs = model(inputs)
 
