@@ -579,7 +579,12 @@ def model_train(model, data_loader, criterion, optimizer, send_to_device=True, m
 
         optimizer.zero_grad()
         outputs = model(inputs)
-        loss = criterion(outputs, labels.long())
+
+        if mode == 'prediction':
+            loss = criterion(outputs, labels.long())
+        elif mode == 'reconstruction':
+            loss = criterion(outputs, labels)
+
         loss.backward()
         optimizer.step()
 
