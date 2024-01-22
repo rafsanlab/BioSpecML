@@ -405,19 +405,22 @@ class Unet(nn.Module):
         self.layer5 = BasicDecoderBlock(c*n**4, c*n**4, n_latent, padding=padding, verbose=self.verbose)
 
         # decoder
+        
         if expand_decoder==False:
             self.layer6 = BasicDecoderBlock(c*n**5, c*n**3, n, padding=padding, verbose=self.verbose)
             self.layer7 = BasicDecoderBlock(c*n**4, c*n**2, n, padding=padding, verbose=self.verbose)
             self.layer8 = BasicDecoderBlock(c*n**3, c*n**1, n, padding=padding, verbose=self.verbose)
             self.layer9 = BasicDecoderBlock(c*n**2, c, n, padding=padding, transpose=False, verbose=self.verbose)
+            # final layer
+            self.layer10 = FinalLayer(c*n, out_c, kernel=1, verbose=self.verbose)
+
         elif expand_decoder==True:
             self.layer6 = BasicDecoderBlock(c*n**5, c*n**3, n_latent, padding=padding, verbose=self.verbose)
             self.layer7 = BasicDecoderBlock(c*n**4, c*n**2, n_latent, padding=padding, verbose=self.verbose)
             self.layer8 = BasicDecoderBlock(c*n**3, c*n**1, n_latent, padding=padding, verbose=self.verbose)
             self.layer9 = BasicDecoderBlock(c*n**2, c, n_latent, padding=padding, transpose=False, verbose=self.verbose)
-
-        # final layer
-        self.layer10 = FinalLayer(c*n_latent, out_c, kernel=1, verbose=self.verbose)
+            # final layer
+            self.layer10 = FinalLayer(c*n_latent, out_c, kernel=1, verbose=self.verbose)
 
 
     def forward(self, x):
