@@ -677,7 +677,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
                          optimizer, metrics_list, verbose=True,
                          mode='reconstruction', run_training=True, run_testing=False,
                          epoch_save_checkpoint=[], project_dir=None, save_model=False,
-                         trained_num_epochs=None):
+                         trained_num_epochs=None, f1_average='macro'):
 
     main_metrics = {} # to compile all the epoch metrics
     
@@ -701,7 +701,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
         
         # --------------- training ---------------
         if run_training:
-            training_metrics = model_train(model, train_loader, criterion, optimizer, mode=mode, metrics_list=metrics_list)
+            training_metrics = model_train(model, train_loader, criterion, optimizer, mode=mode, metrics_list=metrics_list, f1_average=f1_average)
             
             # save metrics
             for key in training_metrics.keys():
@@ -716,7 +716,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
         
         # --------------- testing ---------------
         if run_testing:
-            testing_metrics, outputs, labels = model_test(model, test_loader, mode=mode, metrics_list=metrics_list)
+            testing_metrics, outputs, labels = model_test(model, test_loader, mode=mode, metrics_list=metrics_list, f1_average=f1_average)
             
             # save metrics
             for key in testing_metrics.keys():
