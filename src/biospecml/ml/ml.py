@@ -753,7 +753,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
             print()
         
         # save stat data
-        stat_fname_path = os.path.join(project_dir, f'stats_e{epoch}.json')
+        stat_fname_path = os.path.join(project_dir, f'stats.json')
         with open(stat_fname_path, 'w') as json_file:
                 json.dump(main_metrics, json_file, indent=4)
     
