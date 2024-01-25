@@ -687,7 +687,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
     
     # add epochs (for model loaded from checkpoints)
     if isinstance(trained_num_epochs, int):
-        start_epoch = trained_num_epochs
+        start_epoch = trained_num_epochs + 1
     else:
         start_epoch = 1
 
