@@ -685,14 +685,20 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
     if project_dir==None:
         project_dir = os.getcwd()
     
+    # add epochs (for model loaded from checkpoints)
+    if isinstance(trained_num_epochs, int):
+        start_epoch = trained_num_epochs
+    else:
+        start_epoch = 1
+
     # --------------- start epoch ---------------
     
     # for epoch in tqdm(range(1, num_epochs+1, 1)):
-    for epoch in range(1, num_epochs+1, 1):
+    for epoch in range(start_epoch, num_epochs+1, 1):
         
-        # add epochs (for model loaded from checkpoints)
-        if isinstance(trained_num_epochs, int):
-            epoch += trained_num_epochs
+        # # add epochs (for model loaded from checkpoints)
+        # if isinstance(trained_num_epochs, int):
+        #     epoch += trained_num_epochs
         
         # housekeeping
         start_time = time.time() 
@@ -747,7 +753,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
             print()
         
         # save stat data
-        stat_fname_path = os.path.join(project_dir, 'stats.json')
+        stat_fname_path = os.path.join(project_dir, f'stats_e{epoch}.json')
         with open(stat_fname_path, 'w') as json_file:
                 json.dump(main_metrics, json_file, indent=4)
     
@@ -774,7 +780,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
  
     # save final model
     if save_model:
-        model_path = os.path.join(project_dir, 'model.pth')
+        model_path = os.path.join(project_dir, f'model_e{epoch}.pth')
         torch.save(model, model_path)
     
     # --------------- returns ---------------
