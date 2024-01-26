@@ -687,8 +687,10 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
     
     # add epochs (for model loaded from checkpoints)
     if isinstance(trained_num_epochs, int):
+        CHECKPOINT_MODE = True
         start_epoch = trained_num_epochs + 1
     else:
+        CHECKPOINT_MODE = False
         start_epoch = 1
 
     # --------------- start epoch ---------------
@@ -754,7 +756,11 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
         
         # save stat data
         stat_fname_path = os.path.join(project_dir, f'stats.json')
-        with open(stat_fname_path, 'w') as json_file:
+        if CHECKPOINT_MODE == True:
+            open_method = 'a'
+        else:
+            open_method = 'w'
+        with open(stat_fname_path, open_method) as json_file:
                 json.dump(main_metrics, json_file, indent=4)
     
         # --------------- save model checkpoint ---------------
