@@ -755,12 +755,8 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
             print()
         
         # save stat data
-        stat_fname_path = os.path.join(project_dir, 'stats.json')
-        if CHECKPOINT_MODE == True:
-            open_method = 'a'
-        else:
-            open_method = 'w'
-        with open(stat_fname_path, open_method) as json_file:
+        stat_fname_path = os.path.join(project_dir, f'stats_{num_epochs}.json')
+        with open(stat_fname_path, 'w') as json_file:
                 json.dump(main_metrics, json_file, indent=4)
     
         # --------------- save model checkpoint ---------------
