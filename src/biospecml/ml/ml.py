@@ -755,7 +755,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
             print()
         
         # save stat data
-        stat_fname_path = os.path.join(project_dir, f'stats.json')
+        stat_fname_path = os.path.join(project_dir, 'stats.json')
         if CHECKPOINT_MODE == True:
             open_method = 'a'
         else:
