@@ -151,7 +151,8 @@ def plot_clusters_img(cluster_col, w, h, cmap='Spectral', fname=None):
 
 def plot_spectra_clusters(
     dataframe, cluster_column_name, cmap='Spectral', drop_columns=None, shade=False,
-    save_dpi=200, plot_dpi=80, figsize=(7, 4), legend='in', legend_size=7, wavenumber=None, wavenumber_xticks=10,
+    save_dpi=200, plot_dpi=80, figsize=(7, 4), legend='in', legend_loc='upper left', legend_size=7,
+    wavenumber=None, wavenumber_xticks=10,
     off_spines = ['top', 'right'], title='Mean spectra of all clusters', fname=None, show_plot=True
     ):
     """
@@ -236,7 +237,7 @@ def plot_spectra_clusters(
 
     # === legend in or out condition ===
     if legend != 'in':
-        legend = plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+        legend = plt.legend(loc=legend_loc, bbox_to_anchor=(1, 1))
         plt.subplots_adjust(right=0.7) # <-make space for the legend
     else:
         plt.legend(prop={'size': legend_size})
