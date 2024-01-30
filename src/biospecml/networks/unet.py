@@ -72,14 +72,22 @@ class UnetBasicEncoderBlock(nn.Module):
         """
         super(UnetBasicEncoderBlock, self).__init__()
         self.verbose = verbose
-        self.block = nn.Sequential(
-            nn.Conv2d(in_c, c*n, 3, stride, padding),
-            nn.Dropout2d(dropout_rate),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(c*n, c*n, 3, stride, padding),
-            nn.Dropout2d(dropout_rate),
-            nn.ReLU(inplace=True),
-        )
+        if dropout_rate==0:
+            self.block = nn.Sequential(
+                nn.Conv2d(in_c, c*n, 3, stride, padding),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(c*n, c*n, 3, stride, padding),
+                nn.ReLU(inplace=True),
+            )
+        elif dropout_rate!=0:
+            self.block = nn.Sequential(
+                nn.Conv2d(in_c, c*n, 3, stride, padding),
+                nn.ReLU(inplace=True),
+                nn.Dropout2d(dropout_rate),
+                nn.Conv2d(c*n, c*n, 3, stride, padding),
+                nn.ReLU(inplace=True),
+                nn.Dropout2d(dropout_rate),
+            )
         self.maxpool = nn.MaxPool2d(2,2)
 
     def forward(self, x):
@@ -94,14 +102,23 @@ class UnetBasicDecoderBlock(nn.Module):
         super(UnetBasicDecoderBlock, self).__init__()
         self.transpose = transpose
         self.verbose = verbose
-        self.block = nn.Sequential(
-            nn.Conv2d(in_c, c * n, 3, stride, padding),
-            nn.Dropout2d(dropout_rate),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(c * n, c * n, 3, stride, padding),
-            nn.Dropout2d(dropout_rate),
-            nn.ReLU(inplace=True),
-        )
+        if dropout_rate==0:
+            self.block = nn.Sequential(
+                nn.Conv2d(in_c, c * n, 3, stride, padding),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(c * n, c * n, 3, stride, padding),
+                nn.ReLU(inplace=True),
+            )
+        elif dropout_rate!=0:
+            self.block = nn.Sequential(
+                nn.Conv2d(in_c, c * n, 3, stride, padding),
+                nn.ReLU(inplace=True),
+                nn.Dropout2d(dropout_rate),
+                nn.Conv2d(c * n, c * n, 3, stride, padding),
+                nn.ReLU(inplace=True),
+                nn.Dropout2d(dropout_rate),
+            )
+
         # here output channel is half to concat to residual connections
         self.transpose2d = nn.ConvTranspose2d(c * n, c, 2, 2, output_padding=0)
 
