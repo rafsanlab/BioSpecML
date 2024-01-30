@@ -621,7 +621,7 @@ def model_train(model, data_loader, criterion, optimizer, send_to_device=True, m
     return metrics
 
 
-def model_test(model, data_loader, mode='prediction', send_to_device=True,
+def model_test(model, data_loader, mode='prediction', send_to_device=True, criterion=None,
                 metrics_list=['accuracy', 'f1'], f1_average='macro'):
     """
     TESTING FUNCTION FOR MODEL
@@ -634,6 +634,7 @@ def model_test(model, data_loader, mode='prediction', send_to_device=True,
 
     metrics = {}
     batch_metrics = {}
+    total_loss = 0.0
 
     with torch.no_grad():
         # for inputs_batch, labels_batch in data_loader:
@@ -642,6 +643,14 @@ def model_test(model, data_loader, mode='prediction', send_to_device=True,
                 inputs, labels = data[0].to(device), data[1].to(device)
 
             outputs = model(inputs)
+
+            if criterion!=None:
+                if mode == 'prediction':
+                    loss = criterion(outputs, labels.long())
+                elif mode == 'reconstruction':
+                    loss = criterion(outputs, labels)
+                total_loss += loss.item()
+
 
             if mode == 'prediction':
 
@@ -669,6 +678,10 @@ def model_test(model, data_loader, mode='prediction', send_to_device=True,
 
         for key in batch_metrics.keys():
             metrics[key] /= len(data_loader)
+        
+        if criterion!=None:
+            loss = total_loss / len(data_loader)
+            metrics['loss'] = loss
 
     return metrics, outputs, labels
 
