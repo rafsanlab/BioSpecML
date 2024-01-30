@@ -63,7 +63,7 @@ def crop_and_concat(src_tnsr, tgt_tnsr, concat=True, verbose=False):
     
 class UnetBasicEncoderBlock(nn.Module):
 
-    def __init__(self, in_c, c, n, stride=1, padding=0, verbose=False):
+    def __init__(self, in_c, c, n, stride=1, padding=0, dropout_rate=0, verbose=False):
         """
         in_c : input channel
         c : inner channel
@@ -74,8 +74,10 @@ class UnetBasicEncoderBlock(nn.Module):
         self.verbose = verbose
         self.block = nn.Sequential(
             nn.Conv2d(in_c, c*n, 3, stride, padding),
+            nn.Dropout2d(dropout_rate),
             nn.ReLU(inplace=True),
             nn.Conv2d(c*n, c*n, 3, stride, padding),
+            nn.Dropout2d(dropout_rate),
             nn.ReLU(inplace=True),
         )
         self.maxpool = nn.MaxPool2d(2,2)
@@ -88,14 +90,16 @@ class UnetBasicEncoderBlock(nn.Module):
         return x, x1
 
 class UnetBasicDecoderBlock(nn.Module):
-    def __init__(self, in_c, c, n=2, stride=1, padding=0, transpose=True, verbose=False):
+    def __init__(self, in_c, c, n=2, stride=1, padding=0, transpose=True, dropout_rate=0, verbose=False):
         super(UnetBasicDecoderBlock, self).__init__()
         self.transpose = transpose
         self.verbose = verbose
         self.block = nn.Sequential(
             nn.Conv2d(in_c, c * n, 3, stride, padding),
+            nn.Dropout2d(dropout_rate),
             nn.ReLU(inplace=True),
             nn.Conv2d(c * n, c * n, 3, stride, padding),
+            nn.Dropout2d(dropout_rate),
             nn.ReLU(inplace=True),
         )
         # here output channel is half to concat to residual connections
@@ -128,7 +132,7 @@ class UnetFinalLayer(nn.Module):
 
 
 class Unet(nn.Module):
-    def __init__(self, in_c=1, out_c=2, c=32, n_latent=2, expand_decoder=False, padding=0, verbose=False):
+    def __init__(self, in_c=1, out_c=2, c=32, n_latent=2, expand_decoder=False, padding=0, dropout_rate=0, verbose=False):
         """
         A U-Net implementation in Pytorch.
         [*] Default value will output tensor shape (2, 388, 388) from input shape (1, 572, 572).
@@ -161,29 +165,29 @@ class Unet(nn.Module):
         n = 2 # inner channel multiploier
 
         # encoder
-        self.layer1 = UnetBasicEncoderBlock(in_c, c, n, padding=padding, verbose=self.verbose)
-        self.layer2 = UnetBasicEncoderBlock(c*n**1, c*n**1, n, padding=padding, verbose=self.verbose)
-        self.layer3 = UnetBasicEncoderBlock(c*n**2, c*n**2, n, padding=padding, verbose=self.verbose)
-        self.layer4 = UnetBasicEncoderBlock(c*n**3, c*n**3, n, padding=padding, verbose=self.verbose)
+        self.layer1 = UnetBasicEncoderBlock(in_c, c, n, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
+        self.layer2 = UnetBasicEncoderBlock(c*n**1, c*n**1, n, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
+        self.layer3 = UnetBasicEncoderBlock(c*n**2, c*n**2, n, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
+        self.layer4 = UnetBasicEncoderBlock(c*n**3, c*n**3, n, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
 
         # latent space
-        self.layer5 = UnetBasicDecoderBlock(c*n**4, c*n**4, n_latent, padding=padding, verbose=self.verbose)
+        self.layer5 = UnetBasicDecoderBlock(c*n**4, c*n**4, n_latent, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
 
         # decoder
         
         if expand_decoder==False:
-            self.layer6 = UnetBasicDecoderBlock(c*n**5, c*n**3, n, padding=padding, verbose=self.verbose)
-            self.layer7 = UnetBasicDecoderBlock(c*n**4, c*n**2, n, padding=padding, verbose=self.verbose)
-            self.layer8 = UnetBasicDecoderBlock(c*n**3, c*n**1, n, padding=padding, verbose=self.verbose)
-            self.layer9 = UnetBasicDecoderBlock(c*n**2, c, n, padding=padding, transpose=False, verbose=self.verbose)
+            self.layer6 = UnetBasicDecoderBlock(c*n**5, c*n**3, n, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
+            self.layer7 = UnetBasicDecoderBlock(c*n**4, c*n**2, n, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
+            self.layer8 = UnetBasicDecoderBlock(c*n**3, c*n**1, n, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
+            self.layer9 = UnetBasicDecoderBlock(c*n**2, c, n, padding=padding, transpose=False, dropout_rate=dropout_rate, verbose=self.verbose)
             # final layer
             self.layer10 = UnetFinalLayer(c*n, out_c, kernel=1, verbose=self.verbose)
 
         elif expand_decoder==True:
-            self.layer6 = UnetBasicDecoderBlock(c*n**5, c*n**3, n_latent, padding=padding, verbose=self.verbose)
-            self.layer7 = UnetBasicDecoderBlock(c*n**4, c*n**2, n_latent, padding=padding, verbose=self.verbose)
-            self.layer8 = UnetBasicDecoderBlock(c*n**3, c*n**1, n_latent, padding=padding, verbose=self.verbose)
-            self.layer9 = UnetBasicDecoderBlock(c*n**2, c, n_latent, padding=padding, transpose=False, verbose=self.verbose)
+            self.layer6 = UnetBasicDecoderBlock(c*n**5, c*n**3, n_latent, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
+            self.layer7 = UnetBasicDecoderBlock(c*n**4, c*n**2, n_latent, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
+            self.layer8 = UnetBasicDecoderBlock(c*n**3, c*n**1, n_latent, padding=padding, dropout_rate=dropout_rate, verbose=self.verbose)
+            self.layer9 = UnetBasicDecoderBlock(c*n**2, c, n_latent, padding=padding, transpose=False, dropout_rate=dropout_rate, verbose=self.verbose)
             # final layer
             self.layer10 = UnetFinalLayer(c*n_latent, out_c, kernel=1, verbose=self.verbose)
 
