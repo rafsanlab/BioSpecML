@@ -151,7 +151,7 @@ def plot_clusters_img(cluster_col, w, h, cmap='Spectral', fname=None):
 
 def plot_spectra_clusters(
     dataframe, cluster_column_name, cmap='Spectral', drop_columns=None, shade=False,
-    save_dpi=200, plot_dpi=80, figsize=(7, 4), legend='in', legend_loc='upper left', legend_size=7,
+    save_dpi=200, plot_dpi=80, figsize=(7, 4), legend='in', legend_loc='best', legend_col=1, legend_size=7,
     wavenumber=None, wavenumber_xticks=10,
     off_spines = ['top', 'right'], title='Mean spectra of all clusters', fname=None, show_plot=True
     ):
@@ -159,18 +159,20 @@ def plot_spectra_clusters(
     Plot mean spectra based on cluster.
 
     Args:
-        dataframe(pd.DataFrame): df containing data.
-        cluster_column_name(str): name of cluster column.
-        cmap(str): Matplotlib cmap name.
-        drop_columns(tuple): range of columns to be dropped.
-        shade(bool): option for SD shade for each cluster.
-        save_dpi(int): dpi for saved figure.
-        plot_dpi(int): dpi for plotted figue.
-        figsize(tuple): figure size.
-        legend(str): to be 'in' plot or 'out'.
-        legend_size(int): size of legend.
-        title(str): title name.
-        fname(str): filename or save path with filename.
+        - dataframe(pd.DataFrame): df containing data.
+        - cluster_column_name(str): name of cluster column.
+        - cmap(str): Matplotlib cmap name.
+        - drop_columns(tuple): range of columns to be dropped.
+        - shade(bool): option for SD shade for each cluster.
+        - save_dpi(int): dpi for saved figure.
+        - plot_dpi(int): dpi for plotted figue.
+        - figsize(tuple): figure size.
+        - legend(str): to be 'in' plot or 'out'.
+            - legend_size(int): size of legend if legend='in'.
+            - legend_loc(str): legend location if legend='out'.
+            - legend_col(int): number of legend columns if legend='out'.
+        - title(str): title name.
+        - fname(str): filename or save path with filename.
     Return:
         Matplotlib figure.
     """
@@ -237,7 +239,7 @@ def plot_spectra_clusters(
 
     # === legend in or out condition ===
     if legend != 'in':
-        legend = plt.legend(loc=legend_loc, bbox_to_anchor=(1, 1))
+        legend = plt.legend(loc=legend_loc, bbox_to_anchor=(1, 1), ncol=legend_col)
         plt.subplots_adjust(right=0.7) # <-make space for the legend
     else:
         plt.legend(prop={'size': legend_size})
