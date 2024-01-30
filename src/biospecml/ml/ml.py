@@ -656,6 +656,7 @@ def model_test(model, data_loader, mode='prediction', send_to_device=True, crite
 
                 _, outputs = torch.max(outputs, 1)
                 outputs, labels = outputs.cpu().numpy(), labels.cpu().numpy()
+                
                 if metrics_list is not None:
                     batch_metrics = calc_metric_prediction(labels, outputs, metrics_list=metrics_list, f1_average=f1_average)
 
@@ -737,7 +738,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
         
         # --------------- testing ---------------
         if run_testing:
-            testing_metrics, outputs, labels = model_test(model, test_loader, mode=mode, metrics_list=metrics_list, f1_average=f1_average)
+            testing_metrics, outputs, labels = model_test(model, test_loader, mode=mode, metrics_list=metrics_list, criterion=criterion, f1_average=f1_average)
             
             # save metrics
             for key in testing_metrics.keys():
@@ -748,7 +749,7 @@ def run_training_testing(model, train_loader, test_loader, num_epochs, criterion
             
             # save time per epoch
             epoch_time = time.time() - start_time  # Calculate the time taken for the epoch
-            epoch_metrics['training epoch time'] = epoch_time  # Add epoch time to metrics
+            epoch_metrics['testing epoch time'] = epoch_time  # Add epoch time to metrics
 
         
         # --------------- epoch etcs. ---------------
