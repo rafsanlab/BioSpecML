@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
 import pandas as pd
 
 
@@ -47,26 +48,29 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             stacked:bool=False, fname:str=None, 
             x_axis=None, xlabel=None, ylabel=None, title=None, show_plot=True,
             annotation_dict:dict=None, annotation_args:list=None,
-
-            process:list=None, label_name:str=None,ylist:list=None,
-            xticks_range:range=None, xticks:list=None, xlist:list=None,
+            yscale:float=None, xtick_rotate:float=None, line_styles:list=None,
+            # process:list=None, label_name:str=None,ylist:list=None,
+            # xticks_range:range=None, xticks:list=None, xlist:list=None,
             ):
 
     """
     Expects index to be x-axis, and columns as features.
 
     Arguments:
-    - annotation_dict(dict) : annotate x-axis with lines (works when plot_mode='line')
-    - annotation_args = [filter, y, rot, linewidth, fontsize, va, ha, color, alpha]
-        - filter(bool) : set True if only include wavenumbers in the plot
-        - y(int) : position of y of the annotation
-        - rot(+/-int) : rotation of the annotation
-        - linewidth(float) : width of the line
-        - fontsize(int) : dict's value text font size
-        - va(str) : vertical alignment of the annotation
-        - ha(str) : horizontal alignment of the annotation
-        - color(str) : set colour for both line and anootation
-        - alpha(float) : set alpha for both both line and anootation
+    - xlabel, ylabel (str|dict) : labels for axes,
+        - can also pass plt's **args via dict
+            - i.e: xlabel = {'xlabel': 'Variables', 'fontsize': 10, 'fontweight': 'bold'},
+    - annotation_dict (dict) : annotate x-axis with lines (works when plot_mode='line')
+    - annotation_args (list) = [filter, y, rot, linewidth, fontsize, va, ha, color, alpha]
+        - filter (bool) : set True if only include wavenumbers in the plot
+        - y (int) : position of y of the annotation
+        - rot (+/-int) : rotation of the annotation
+        - linewidth (float) : width of the line
+        - fontsize (int) : dict's value text font size
+        - va (str) : vertical alignment of the annotation
+        - ha (str) : horizontal alignment of the annotation
+        - color (str) : set colour for both line and anootation
+        - alpha (float) : set alpha for both both line and anootation
 
     """
 
@@ -119,6 +123,20 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
         idx_df = [int(float(i)) for i in df.index.tolist()]
         plt_annotate_dict(ax, annotation_dict, idx_df, annotation_args)
 
+    # ----- styling each lines  ------
+
+    if line_styles != None:
+
+        # iterate line in line styles
+        for i, line in enumerate(ax.get_lines()):
+            line.set_linestyle(line_styles[i])
+
+        # Update legend with custom line styles
+        legend_handles = []
+        for i, (colname, line) in enumerate(zip(df.columns, ax.get_lines())):
+            line.set_linestyle(line_styles[i])
+            legend_handles.append(mlines.Line2D([], [], color=line.get_color(), linestyle=line_styles[i], label=colname))
+
     # ----- other plt args ------
 
     # setting spines
@@ -136,12 +154,24 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     # if ylist != None:
     #     ax.set_yticks(range(len(ylist)))
     #     ax.set_yticklabels(ylist)
+        
+    if yscale != None:
+        plt.yscale(yscale)
+
+    if xtick_rotate != None:
+        plt.xticks(rotation=xtick_rotate)
 
     if xlabel != None:
-        ax.set_xlabel(xlabel)
+        if isinstance(xlabel, str):
+            ax.set_xlabel(xlabel)
+        elif isinstance(xlabel, dict):
+            ax.set_xlabel(**xlabel)
 
     if ylabel != None:
-        ax.set_ylabel(ylabel)
+        if isinstance(ylabel, str):
+            ax.set_ylabel(ylabel)
+        elif isinstance(ylabel, dict):
+            ax.set_ylabel(**ylabel)
 
     if title != None:
         plt.title(title)
