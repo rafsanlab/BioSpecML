@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import f1_score, accuracy_score
 import json
+import os
 
 def run_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
                   savedir=None, f1_score_average='macro', validation_mode=False,
@@ -16,7 +17,7 @@ def run_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
 
     metrics = {'epoch':[], 'loss':[], 'accuracy':[],'f1':[]}
 
-    # if this function is in a running loop, set one_epoch_mode to True
+    # if this function is in another running loop, set one_epoch_mode to True
     # so regardless any epoch number, will only run for one
     # but we save the given epoch for stats
     if one_epoch_mode:
@@ -87,7 +88,7 @@ def run_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
                 outputs = outputs.cpu()
                 targets = targets.cpu()
 
-            outputs = outputs.reshape(batch_num, -1, num_classes) # reshape outputs back
+            outputs = outputs.reshape(batch_num, instance_num, -1) # reshape outputs back
             bag_predictions = torch.argmax(outputs.mean(dim=1), dim=1).numpy()  # Take mean over instances, then argmax over classes
             targets = targets[::instance_num].numpy() # unrepeat labels
 
@@ -101,7 +102,7 @@ def run_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
             epoch_f1 += batch_f1
 
         # Calculate average metrics for the epoch
-        epoch_loss /= loop_count # using epoch_loss /= len(train_loader.dataset) =X
+        epoch_loss /= loop_count # using <epoch_loss /= len(train_loader.dataset)> not good
         epoch_accuracy /= loop_count
         epoch_f1 /= loop_count
 
