@@ -132,7 +132,6 @@ class UnetBasicDecoderBlock(nn.Module):
             print('x \t\t:', x.shape)
         return x
 
-
 class UnetFinalLayer(nn.Module):
 
     def __init__(self, in_c, out_c, kernel=1, verbose=False):
@@ -145,7 +144,6 @@ class UnetFinalLayer(nn.Module):
         if self.verbose is True:
             print('x \t\t:', x.shape)
         return x
-
 
 
 class Unet(nn.Module):
@@ -227,7 +225,6 @@ class Unet(nn.Module):
 
 
 # ------------------ UNET 3D ------------------
-
 
 class Unet3DBasicEncoderBlock(nn.Module):
     def __init__(self, in_c, c, n, stride=1, padding=0, verbose=False):
