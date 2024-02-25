@@ -72,7 +72,7 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
 
         epoch = ori_epochs if one_epoch_mode else epoch+1
         epoch_metrics = {key: 0.0 for key in metrics.keys()}        
-        epoch_metrics['epoch'] = ori_epochs if one_epoch_mode else epoch+1
+        epoch_metrics['epoch'] = ori_epochs if one_epoch_mode else epoch
 
         loop_count = 0 # this track batch number (more robust than using batch_num)
 
