@@ -5,7 +5,7 @@ from sklearn.metrics import f1_score, accuracy_score
 import json
 import os
 
-def run_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
+def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
                   savedir=None, f1_score_average='macro', validation_mode=False,
                   use_instance_labels=True, use_bag_labels=False,
                   one_epoch_mode=False):
@@ -131,7 +131,9 @@ def run_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
         # save metrics every epoch to be safe
         if savedir != None:
             dir_metrics = os.path.join(savedir, stat_fname)
-            with open(dir_metrics, 'w') as json_file:
-                json.dump(metrics, json_file, indent=4)
+        else:
+            dir_metrics = os.path.join(os.getcwd(), stat_fname)
+        with open(dir_metrics, 'w') as json_file:
+            json.dump(metrics, json_file, indent=4)
 
     return model, metrics
