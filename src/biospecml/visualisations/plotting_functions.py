@@ -55,6 +55,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             ):
 
     """
+    This is the swiss knife function to plot df's data!
     Expects index to be x-axis, and columns as features.
 
     Arguments:
@@ -227,6 +228,8 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
 
     if title != None:
         plt.title(title, fontweight='extra bold')
+    
+    plt.tight_layout()
 
     if fname != None:
         plt.savefig(fname)
