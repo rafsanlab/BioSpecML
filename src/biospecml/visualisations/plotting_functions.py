@@ -43,9 +43,10 @@ def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
 
 
 def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
-            drop_rows:list=None, width:float=0.7, figsize:tuple=(7, 4),
+            drop_rows:list=None, plot_cols:list=None, set_grid:bool|dict=False,
+            width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
             cmap:str='Spectral', hide_spines:list=['top', 'right'],
-            stacked:bool=False, fname:str=None, 
+            stacked:bool=False, fname:str=None, legend_outside:bool=False,
             x_axis=None, xlabel=None, ylabel=None, title=None, show_plot=True,
             annotation_dict:dict=None, annotation_args:list=None,
             yscale:float=None, xtick_rotate:float=None, line_styles:list=None,
@@ -57,6 +58,9 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     Expects index to be x-axis, and columns as features.
 
     Arguments:
+    - x_axis (str) : name of the column to be x-axis
+    - ylim (tup) = min and max of y-axis, i.e; (0,1)
+    - set_grid = {'color'='black', 'linewidth'=0.2}
     - xlabel, ylabel (str|dict) : labels for axes,
         - can also pass plt's **args via dict
             - i.e: xlabel = {'xlabel': 'Variables', 'fontsize': 10, 'fontweight': 'bold'},
@@ -80,42 +84,68 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     if check_data:
         if df.shape[0] > 50000 or df.shape[1] > 50000:
             raise Exception('Too many rows or columns (>50,000) to plot, set *check_data = False to skip this warning.')
+    
+    # condition for if plot_cols is defined so that we can drop other columns
+    if plot_cols != None:
+        columns = df_stat.columns.tolist()
+        columns = [c for c in columns if c not in plot_cols and c not in x_axis]        
+        if drop_cols is not None:
+            drop_cols.extend(columns)
+        else:
+            drop_cols = columns.copy()
 
-    # drop columns
+    # condition to drop columns
     if drop_cols != None:
         for col in drop_cols:
             if col in df.columns.tolist():
                 df = df.drop([col], axis=1)
 
-    # drop rows
+    # condition to drop rows
     if drop_rows != None:
         for row in drop_rows:
             if row in df.index.tolist():
                 df = df.drop([row], axis=0)
+    
 
     # ----- plotting ------
 
-    # option to plot bar
-    if plot_mode == 'bar':
-        if x_axis != None:
-            ax = df.plot(kind='bar', stacked=stacked, width=width, figsize=figsize, cmap=cmap, x=x_axis)
+    if plot_mode == 'line':
+        if x_axis is not None:
+            ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, cmap=cmap, x=x_axis)
         else:
-            ax = df.plot(kind='bar', stacked=stacked, width=width, figsize=figsize, cmap=cmap)
-
-    # option to plot horizontal bar
-    elif plot_mode == 'barh':
-        ax = df.plot.barh(stacked=stacked, width=width, figsize=figsize, cmap=cmap)
-
-    # option to plot line
-    elif plot_mode == 'line':
-        if x_axis != None:
-            ax = df.plot(kind='line', stacked=stacked, figsize=figsize, cmap=cmap)
-        else:
-            ax = df.plot(kind='line', stacked=stacked, figsize=figsize, cmap=cmap)#, y=df.columns.tolist(), x=df.index)
-
-    # pass pd.DataFrame.plot kind
+            ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, cmap=cmap)
     else:
-        ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, cmap=cmap)
+        if x_axis is not None:
+            ax = df.plot(kind=plot_mode, stacked=stacked, width=width, figsize=figsize, cmap=cmap, x=x_axis)
+        else:
+            ax = df.plot(kind=plot_mode, stacked=stacked, width=width, figsize=figsize, cmap=cmap)
+
+    # option to plot bar
+    # if plot_mode == 'bar':
+    #     if x_axis is not None:
+    #         ax = df.plot(kind='bar', stacked=stacked, width=width, figsize=figsize, cmap=cmap, x=x_axis)
+    #     else:
+    #         ax = df.plot(kind='bar', stacked=stacked, width=width, figsize=figsize, cmap=cmap)
+
+    # # option to plot horizontal bar
+    # elif plot_mode == 'barh':
+    #     if x_axis is not None:
+    #         ax = df.plot(kind='barh', stacked=stacked, width=width, figsize=figsize, cmap=cmap, x=x_axis)
+    #     else:
+    #         ax = df.plot(kind='barh', stacked=stacked, width=width, figsize=figsize, cmap=cmap)
+
+    #     # ax = df.plot.barh(stacked=stacked, width=width, figsize=figsize, cmap=cmap)
+
+    # # option to plot line
+    # elif plot_mode == 'line':
+    #     if x_axis is not None:
+    #         ax = df.plot(kind='line', stacked=stacked, figsize=figsize, cmap=cmap, x=x_axis)
+    #     else:
+    #         ax = df.plot(kind='line', stacked=stacked, figsize=figsize, cmap=cmap)#, y=df.columns.tolist(), x=df.index)
+
+    # # pass pd.DataFrame.plot kind
+    # else:
+    #     ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, cmap=cmap)
 
     # ---- annotate plot -----
 
@@ -139,6 +169,16 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
 
     # ----- other plt args ------
 
+    if legend_outside!=False:
+        ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+    if set_grid is not None:
+        if isinstance(set_grid, dict):
+            ax.grid(True, **set_grid)
+        else:
+            ax.grid(True, color='black', linewidth=0.2)
+    
+
     # setting spines
     for spine in hide_spines:
         plt.gca().spines[spine].set_visible(False)
@@ -154,7 +194,10 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     # if ylist != None:
     #     ax.set_yticks(range(len(ylist)))
     #     ax.set_yticklabels(ylist)
-        
+
+    if ylim != None:
+        plt.ylim(ylim[0], ylim[1]) 
+
     if yscale != None:
         plt.yscale(yscale)
 
@@ -163,18 +206,18 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
 
     if xlabel != None:
         if isinstance(xlabel, str):
-            ax.set_xlabel(xlabel)
+            ax.set_xlabel(xlabel, fontweight='bold')
         elif isinstance(xlabel, dict):
             ax.set_xlabel(**xlabel)
 
     if ylabel != None:
         if isinstance(ylabel, str):
-            ax.set_ylabel(ylabel)
+            ax.set_ylabel(ylabel, fontweight='bold')
         elif isinstance(ylabel, dict):
             ax.set_ylabel(**ylabel)
 
     if title != None:
-        plt.title(title)
+        plt.title(title, fontweight='extra bold')
 
     if fname != None:
         plt.savefig(fname)
