@@ -87,7 +87,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     
     # condition for if plot_cols is defined so that we can drop other columns
     if plot_cols != None:
-        columns = df_stat.columns.tolist()
+        columns = df.columns.tolist()
         columns = [c for c in columns if c not in plot_cols and c not in x_axis]        
         if drop_cols is not None:
             drop_cols.extend(columns)
