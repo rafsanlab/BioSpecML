@@ -59,6 +59,8 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     Expects index to be x-axis, and columns as features.
 
     Arguments:
+    - plot_mode (str) : pd.DataFrame.plot king argument
+        - i.e: 'line', 'bar', 'barh', 'hist', 'box', 'kde', 'density', 'area', 'pie', 'scatter', 'hexbin'
     - x_axis (str) : name of the column to be x-axis
     - ylim (tup) = min and max of y-axis, i.e; (0,1)
     - set_grid = {'color'='black', 'linewidth'=0.2}
