@@ -47,8 +47,8 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
             cmap:str=None, color:str=None, hide_spines:list=['top', 'right'],
             stacked:bool=False, fname:str=None, legend_outside:bool=False,
-            x_axis=None, xlabel=None, ylabel=None, title=None, show_plot=True,
-            annotation_dict:dict=None, annotation_args:list=None,
+            spine_width:float=1.5,  x_axis=None, xlabel=None, ylabel=None, title=None,
+            show_plot=True, annotation_dict:dict=None, annotation_args:list=None,
             yscale:float=None, xtick_rotate:float=None, line_styles:list=None,
             # process:list=None, label_name:str=None,ylist:list=None,
             # xticks_range:range=None, xticks:list=None, xlist:list=None,
@@ -186,12 +186,15 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
         if isinstance(set_grid, dict):
             ax.grid(True, **set_grid)
         else:
-            ax.grid(True, color='black', linewidth=0.2)
+            ax.grid(True, color='black', linewidth=0.2)  
     
-
     # setting spines
     for spine in hide_spines:
         plt.gca().spines[spine].set_visible(False)
+    
+    # setting spine width
+    for spine in ax.spines.values():
+        spine.set_linewidth(spine_width)
 
     # if xticks_range != None and xticks != None:
         # ax.set_xticks(xticks_range)
