@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
+import matplotlib.image as mpimg
 import pandas as pd
-
+import os
 
 def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
     """
@@ -243,3 +244,54 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
         plt.show()
 
     plt.close()
+
+
+def plot_images_from_folder(
+    folder_path, rows:int=1, cols:int=1, img_format:str='.png', figsize:tuple=(10, 10),
+    title_size:int=10, cmap:str='binary', cmap_reverse:bool=False, fname:str=None,
+    save_dpi:int=200, show_plot:bool=True
+    ):
+    """
+    Plot images from a folder in a single figure.
+
+    Args:
+        - folder_path (str): Path to the folder containing images.
+        - rows (int): Number of rows in the subplot grid.
+        - cols (int): Number of columns in the subplot grid.
+        - figsize (tuple): Figure size (width, height) in inches.
+    """
+
+    # ----- get the images -----
+
+    # image_files = [f for f in os.listdir(folder_path) if f.endswith(('.png', '.jpg', '.jpeg'))]
+    image_files = [f for f in os.listdir(folder_path) if f.endswith((img_format))]
+    image_files.sort()
+
+    # ----- plot each images -----
+
+    fig, axes = plt.subplots(rows, cols, figsize=figsize)
+    axes = axes.flatten()
+    for i, ax in enumerate(axes):
+        if i < len(image_files):
+            img_path = os.path.join(folder_path, image_files[i])
+            img = mpimg.imread(img_path)
+            if cmap_reverse==False:
+                ax.imshow(img, cmap=plt.colormaps.get_cmap(cmap))
+            elif cmap_reverse==True:
+                ax.imshow(img, cmap=plt.colormaps.get_cmap(cmap).reversed())
+            ax.set_title(image_files[i], fontsize=title_size)
+            ax.axis('off')
+        else:
+            ax.axis('off')
+    plt.tight_layout()
+
+    # ----- other params -----
+
+    if show_plot==True:
+        plt.show()
+
+    if fname!=None:
+        plt.savefig(fname, dpi=save_dpi)
+    
+    plt.close(fig)
+    plt.clf() 
