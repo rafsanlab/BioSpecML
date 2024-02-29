@@ -1,7 +1,7 @@
+from sklearn.metrics import f1_score, accuracy_score
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.metrics import f1_score, accuracy_score
 import json
 import os
 
@@ -128,12 +128,10 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
 
         print(f"{text1} \t:| Epoch {epoch+1:03d} | Loss: {epoch_loss:.6f} | Accuracy: {epoch_accuracy:.4f} | F1: {epoch_f1:.4f} |")
 
-        # save metrics every epoch to be safe
+        # condition to save metrics, save every epoch to be safe
         if savedir != None:
             dir_metrics = os.path.join(savedir, stat_fname)
-        else:
-            dir_metrics = os.path.join(os.getcwd(), stat_fname)
-        with open(dir_metrics, 'w') as json_file:
-            json.dump(metrics, json_file, indent=4)
+            with open(dir_metrics, 'w') as json_file:
+                json.dump(metrics, json_file, indent=4)
 
     return model, metrics
