@@ -10,12 +10,12 @@ class SSIMLoss(nn.Module):
     Adapted from https://github.com/NRauschmayr/SSIM_Loss/blob/master/ssim_loss.py
     originaly code in MXNet, converted to Pytorch.
 
-    Example of use: in your training loop;
-        >>> inputs = torch.rand(1, 3, 16, 16) # RGB with 3 channels
-        >>> reference = torch.rand(1, 3, 16, 16)
-        >>> criterion = SSIMLoss(size=11, channel=3) 
-        >>> loss = criterion(inputs, reference)
-        >>> print(f"SSIM Loss: {loss.item()}")
+    Example of use in a training loop;
+    >>> inputs = torch.rand(1, 3, 16, 16) # RGB with 3 channels
+    >>> reference = torch.rand(1, 3, 16, 16)
+    >>> criterion = SSIMLoss(size=11, channel=3) 
+    >>> loss = criterion(inputs, reference)
+    >>> print(f"SSIM Loss: {loss.item()}")
 
     """
     def __init__(self, size=11, channel=3):

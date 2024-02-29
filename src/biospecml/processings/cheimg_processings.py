@@ -21,6 +21,7 @@ def calc_snr(dfX, signal_range, noise_range):
     snr = np.where(noise==0, 0, signal/noise) # calculate SNR ratio
     return snr
 
+
 def calc_outliers_threshold(snr_column, n):
     """
     Calculate the outliers threshold of all spectra dataframe based on the formula

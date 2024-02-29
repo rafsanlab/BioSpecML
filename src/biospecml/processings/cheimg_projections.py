@@ -6,10 +6,11 @@ def projection_area(p:np.ndarray, wavenumbers:np.ndarray):
     Code by Syahril, modified by Rafsanjani.
 
     Args:
-        sp(array): (wavenumber,h,w)
-        wavenumbers(array): wavenumbers
+    - sp (array): (wavenumber,h,w)
+    - wavenumbers (array): wavenumbers
+    
     Return:
-        ?(array): h x w image projection
+    - cc (array): h x w image projection
     """
 
     i,j,k = np.shape(p)
@@ -27,10 +28,10 @@ def projection_std(p:np.ndarray):
     Apply projection based on standard deviation of p (from read_mat()).
 
     Args:
-        p(np.ndarray) : the datacube of ftir image
+    - p (np.ndarray) : the datacube of ftir image
 
     Returns:
-        img_std(np.ndarray) : image projection
+    - img_std(np.ndarray) : image projection
 
   """
     img_std = np.zeros((p.shape[1],p.shape[2]))

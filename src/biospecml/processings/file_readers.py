@@ -8,13 +8,14 @@ def read_mat(filename):
     Code from Syahril, modified by Rafsanjani.
     
     Args:
-        filename(str): filename and directory location       
+    - filename (str): filename and directory location       
+    
     Return:
-        w(int): Width of an image.
-        h(int): Height of an image.
-        p(array): Image data p(wavenmber,h,w).
-        wavenumber(array): Wavenumber arary (ex. 800-1000).
-        sp: Image data sp(wavenumber,w*h).
+    - w (int): Width of an image.
+    - h (int): Height of an image.
+    - p (array): Image data p(wavenmber,h,w).
+    - wavenumber(array): Wavenumber arary (ex. 800-1000).
+    - sp: Image data sp(wavenumber,w*h).
     """
   
     me, file_extension = os.path.splitext(filename)

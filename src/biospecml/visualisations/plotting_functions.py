@@ -255,10 +255,10 @@ def plot_images_from_folder(
     Plot images from a folder in a single figure.
 
     Args:
-        - folder_path (str): Path to the folder containing images.
-        - rows (int): Number of rows in the subplot grid.
-        - cols (int): Number of columns in the subplot grid.
-        - figsize (tuple): Figure size (width, height) in inches.
+    - folder_path (str): Path to the folder containing images.
+    - rows (int): Number of rows in the subplot grid.
+    - cols (int): Number of columns in the subplot grid.
+    - figsize (tuple): Figure size (width, height) in inches.
     """
 
     # ----- get the images -----
