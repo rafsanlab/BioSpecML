@@ -2,7 +2,7 @@
 # from skimage.metrics import structural_similarity as ssim
 # from skimage.metrics import peak_signal_noise_ratio as psnr
 # from sklearn.metrics import f1_score, accuracy_score
-from ml.metrics import calc_metric_prediction, calc_metric_reconstruction
+from ..ml.metrics import calc_metric_prediction, calc_metric_reconstruction
 import torch
 import torch.nn as nn
 import torch.optim as optim
