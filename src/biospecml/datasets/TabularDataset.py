@@ -38,7 +38,8 @@ class TabularDataset(Dataset):
         else:
             metadata_cols = [label_col]
         metadata_cols_ = [col for col in metadata_cols if col in self.df.columns]
-        self.df = self.df.drop(metadata_cols_, axis=1)
+        if metadata_cols_!=None:
+            self.df = self.df.drop(metadata_cols_, axis=1)
         self.df = self.df.values.astype(np.float32)
 
         # other variables
