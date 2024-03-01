@@ -2,19 +2,20 @@
 A code library python package for spectra processing and analysis. Project is on-going development.
 
 # Installation
-This is a guide of installation with code in Colab environment.
+
+## if you want to be able to edit the code:
+
 1. clone the repository:
   ```python
   !git clone https://github.com/rafsanlab/biospecml.git
   ```
-2. pip install from the cloned path
+2. edits any .py files needed.
+3. pip install from the cloned path:
   ```python
   !pip install '/content/biospecml'
   ```
-3. test import
+## if you want to use it directly
+1. install using pip:
   ```python
-  import biospecml.preprocessing as pp
-  pp.read_mat()
+  !pip install git+https://github.com/rafsanlab/biospecml.git
   ```
-  it should raise the following error:
-  >TypeError: read_mat() missing 1 required positional argument: 'filename'
