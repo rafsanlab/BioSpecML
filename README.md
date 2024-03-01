@@ -14,7 +14,7 @@ A code library python package for spectra processing and analysis. Project is on
   ```python
   !pip install '/content/biospecml'
   ```
-## if you want to use it directly
+## if you want to use it directly:
 1. install using pip:
   ```python
   !pip install git+https://github.com/rafsanlab/biospecml.git
