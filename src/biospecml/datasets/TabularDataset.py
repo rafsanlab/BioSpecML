@@ -34,7 +34,7 @@ class TabularDataset(Dataset):
 
         # drop metadata, if None add label_col to metadata
         if metadata_cols != None:
-            metadata_cols = metadata_cols.extend(label_col)
+            metadata_cols.extend(label_col)
         else:
             metadata_cols = [label_col]
         metadata_cols_ = [col for col in metadata_cols if col in self.df.columns]
