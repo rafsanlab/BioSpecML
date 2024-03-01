@@ -186,7 +186,7 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
 
         # set stats fname
         if validation_mode:
-            text1 = 'VALIDATE'
+            text1 = 'VALIDATE '
             stat_fname = 'stats_val.json'
         else:
             text1 = 'TRAINING '
