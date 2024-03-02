@@ -52,8 +52,10 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             spines_width:float=1.5,  x_axis:str='', xlabel=None, ylabel=None, title=None,
             show_plot=True, annotation_dict:dict=None, annotation_args:list=None,
             yscale:float=None, xtick_rotate:float=None, line_styles:list=None,
+            save_dpi:int=300, show_dpi:int=100,
+            xticks:list=None, xticks_range:list=None, yticks:list=None, yticks_range:list=None,
             # process:list=None, label_name:str=None,ylist:list=None,
-            # xticks_range:range=None, xticks:list=None, xlist:list=None,
+            # xticks_range:range=None, xlist:list=None,
             ):
 
     """
@@ -163,6 +165,9 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
 
     # ----- other plt args ------
 
+    plt.tight_layout()
+    plt.gcf().set_dpi(show_dpi) 
+
     if legend_outside!=False:
         ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
@@ -180,17 +185,19 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     for spine in ax.spines.values():
         spine.set_linewidth(spines_width)
 
-    # if xticks_range != None and xticks != None:
-        # ax.set_xticks(xticks_range)
-        # ax.set_xticklabels(xticks)
-    # if xticks != None:
-        # ax.set_xticks(df.index.tolist())
-        # ax.set_xticklabels(df.index.tolist())
-        # ax.set_xticks(range(len(xlist)))
+    # option to manually set xticks
+    if xticks is not None:
+        if xticks_range is None:
+            xticks_range = range(min(xticks), max(xticks)+1)
+        ax.set_xticks(xticks_range)
+        ax.set_xticklabels(xticks)
 
-    # if ylist != None:
-    #     ax.set_yticks(range(len(ylist)))
-    #     ax.set_yticklabels(ylist)
+    # option to manually set yticks
+    if yticks is not None:
+        if yticks_range is None:
+            yticks_range = range(min(yticks), max(yticks)+1)
+        ax.set_yticks(yticks_range)
+        ax.set_ytickslabels(yticks)
 
     if ylim != None:
         plt.ylim(ylim[0], ylim[1]) 
@@ -215,12 +222,10 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
 
     if title != None:
         plt.title(title, fontweight='extra bold')
-    
-    plt.tight_layout()
 
     if fname != None:
-        plt.savefig(fname)
-
+        plt.savefig(fname, dpi=save_dpi)
+    
     if show_plot != False:
         plt.show()
 
