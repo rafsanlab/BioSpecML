@@ -1,6 +1,7 @@
 import os
 import scipy.io as sio
 import numpy as np
+import pathlib
 
 def read_mat(filename):
     """
@@ -42,3 +43,28 @@ def read_mat(filename):
                 h = 1
         p = sp.reshape(sizex,h,w,order='C')
         return  w, h, p, wavenumber, sp
+
+
+def get_data(path:str, file_type:str, verbose:bool=True):
+    """
+    Get files from path with spesific file types.
+
+    Args:
+    - path (str): string path containing the files.
+    - file_type (str): file type i.e; '.png'.
+    - verbose (bool): condition of output summary.
+
+    Return:
+    - paths (list): list of paths.
+
+    """
+
+    path = pathlib.Path(path)
+    lookfor = f'*{file_type}'
+    paths = list(path.glob(lookfor))
+    paths = sorted(paths)
+    if verbose == True:
+        print(f'Total paths: {len(paths)}')
+
+
+    return paths
