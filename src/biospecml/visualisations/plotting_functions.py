@@ -46,7 +46,7 @@ def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
 
 def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             drop_rows:list=None, plot_cols:list=None, set_grid:bool|dict=False,
-            width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
+            linewidth:float=1.5, width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
             cmap:str=None, color:str|list=None, hide_spines:list=['top', 'right'],
             stacked:bool=False, fname:str=None, legend_outside:bool=False,
             spines_width:float=1.5,  x_axis:str='', xlabel=None, ylabel=None, title=None,
@@ -111,6 +111,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
         for row in drop_rows:
             if row in df.index.tolist():
                 df = df.drop([row], axis=0)
+    
 
     # ----- plotting ------
     
@@ -131,9 +132,9 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     # plot line or others
     if plot_mode == 'line':
         if x_axis != '':
-            ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, **plt_args, x=x_axis)
+            ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, linewidth=linewidth, **plt_args, x=x_axis)
         else:
-            ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, **plt_args)
+            ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, linewidth=linewidth, **plt_args)
     else:
         if x_axis != '':
             ax = df.plot(kind=plot_mode, stacked=stacked, width=width, figsize=figsize, **plt_args, x=x_axis)
