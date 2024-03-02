@@ -197,7 +197,7 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
         print(f'{text1} Epoch {epoch:03d}', end=" - ")
         for key, value in epoch_metrics.items():
             metrics[key].append(value)
-            if key!= 'epoch':
+            if key!= 'epochs':
                 print(f"{key} : {value:.6f}", end=" | ")
         print()
 
