@@ -2,7 +2,7 @@
 # from skimage.metrics import structural_similarity as ssim
 # from skimage.metrics import peak_signal_noise_ratio as psnr
 # from sklearn.metrics import f1_score, accuracy_score
-from ..ml.metrics import calc_metric_prediction, calc_metric_reconstruction
+from ..ml.metrics import calc_metric_prediction, calc_metric_similarity
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -173,7 +173,7 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
             # get reconstruction metrics
             if running_types=='reconstruction':
                 outputs, targets = outputs.detach().numpy(), targets.detach().numpy()
-                batch_metrics = calc_metric_reconstruction(outputs, targets, metrics_list)
+                batch_metrics = calc_metric_similarity(outputs, targets, metrics_list)
   
             for key in batch_metrics.keys():
                 epoch_metrics[key] += batch_metrics[key]
@@ -286,23 +286,24 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
 
         if len(epoch_save_checkpoints)>0 and epoch in epoch_save_checkpoints:
             checkpoint_path = os.path.join(savedir, 'checkpoints')
+            checkpoint_save_path = os.path.join(checkpoint_path, 'checkpoint_e'+str(epoch)+'.pth')
+            checkpoint_stat_path = os.path.join(checkpoint_path, 'checkpoint_e'+str(epoch)+'_stats.json')
             if not os.path.exists(checkpoint_path): os.makedirs(checkpoint_path) 
             checkpoint = {
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'epoch': epoch,
                 }
-            checkpoint_save_path = os.path.join(checkpoint_path, 'checkpoint_e'+str(epoch)+'.pth')
             torch.save(checkpoint, checkpoint_save_path)
-            checkpoint_stat_fname_path = os.path.join(checkpoint_path, 'checkpoint_e'+str(epoch)+'_stats.json')
-            with open(checkpoint_stat_fname_path, 'w') as json_file:
+            with open(checkpoint_stat_path, 'w') as json_file:
                 json.dump(main_metrics, json_file, indent=4)
-            print('Saved checkpoint at epoch', epoch)
+            print(f'Saved checkpoint at epoch {epoch}.')
  
     # ----- option to save model -----
 
     if save_model:
         model_path = os.path.join(savedir, f'model_e{epoch}.pth')
         torch.save(model, model_path)
+        print(f'Saved model at epoch {epoch}.')
 
     return model, main_metrics

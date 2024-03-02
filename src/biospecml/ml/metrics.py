@@ -40,7 +40,7 @@ def calc_metric_prediction(inputs, outputs, metrics_list=['accuracy', 'f1'], f1_
     return metrics
 
 
-def calc_metric_reconstruction(inputs, outputs, metrics_list=['SSIM']):
+def calc_metric_similarity(inputs, outputs, metrics_list=['SSIM']):
     """
     Evaluate the performance of a recontructive model using various metrics.
 
