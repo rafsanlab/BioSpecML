@@ -120,13 +120,13 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
     if metrics_list == None:
         raise Exception('Please provide metric list.')
     metrics = {key: [] for key in metrics_list}
-    metrics['loss'], metrics['epoch'] = [], []
+    metrics['loss'], metrics['epochs'] = [], []
 
     for epoch in range(num_epochs):
 
         epoch = ori_epochs if one_epoch_mode else epoch+1
         epoch_metrics = {key: 0.0 for key in metrics.keys()}        
-        epoch_metrics['epoch'] = ori_epochs if one_epoch_mode else epoch
+        epoch_metrics['epochs'] = ori_epochs if one_epoch_mode else epoch
 
         loop_count = 0 # this track batch number (more robust than using batch_num)
 
@@ -180,7 +180,7 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
             epoch_metrics['loss'] += loss.item()
 
         for key in epoch_metrics.keys():
-            if key != 'epoch': # escape 'epoch' value because we doing division
+            if key != 'epochs': # escape 'epoch' value because we doing division
                 epoch_metrics[key] /= loop_count
 
         # ----- print, stat fname and append metrics -----
@@ -237,7 +237,7 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
     """
     start_epoch = trained_num_epochs+1 if isinstance(trained_num_epochs, int) else 1
     main_metrics = {}
-    main_metrics['epoch'] = []
+    main_metrics['epochs'] = []
     savedir = os.getcwd() if savedir is None or savedir == '' else savedir
 
     for epoch in range(start_epoch, num_epochs+1, 1):
@@ -268,7 +268,7 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
         
         # ----- collect metrics -----
 
-        main_metrics['epoch'].append(epoch)
+        main_metrics['epochs'].append(epoch)
         
         for phase, metrics in container_metrics:
             for k, v in metrics.items():
@@ -292,7 +292,7 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
             checkpoint = {
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'epoch': epoch,
+                'epochs': epoch,
                 }
             torch.save(checkpoint, checkpoint_save_path)
             with open(checkpoint_stat_path, 'w') as json_file:
