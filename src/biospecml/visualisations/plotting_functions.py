@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import matplotlib.image as mpimg
+from matplotlib.colors import LinearSegmentedColormap
 import pandas as pd
 import os
 
@@ -46,9 +47,9 @@ def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
 def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             drop_rows:list=None, plot_cols:list=None, set_grid:bool|dict=False,
             width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
-            cmap:str=None, color:str=None, hide_spines:list=['top', 'right'],
+            cmap:str=None, color:str|list=None, hide_spines:list=['top', 'right'],
             stacked:bool=False, fname:str=None, legend_outside:bool=False,
-            spines_width:float=1.5,  x_axis=None, xlabel=None, ylabel=None, title=None,
+            spines_width:float=1.5,  x_axis:str='', xlabel=None, ylabel=None, title=None,
             show_plot=True, annotation_dict:dict=None, annotation_args:list=None,
             yscale:float=None, xtick_rotate:float=None, line_styles:list=None,
             # process:list=None, label_name:str=None,ylist:list=None,
@@ -68,6 +69,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     - xlabel, ylabel (str|dict) : labels for axes,
         - can also pass plt's **args via dict
             - i.e: xlabel = {'xlabel': 'Variables', 'fontsize': 10, 'fontweight': 'bold'},
+    - color (str|list) = accept a single colour: 'red', or a list of colours: ['red', 'blue']
     - annotation_dict (dict) : annotate x-axis with lines (works when plot_mode='line')
     - annotation_args (list) = [filter, y, rot, linewidth, fontsize, va, ha, color, alpha]
         - filter (bool) : set True if only include wavenumbers in the plot
@@ -109,56 +111,34 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
         for row in drop_rows:
             if row in df.index.tolist():
                 df = df.drop([row], axis=0)
-    
 
     # ----- plotting ------
     
     # set plotting colors
     if color==None and cmap==None:
-        plt_args = {'cmap':'Spectral'}
+        plt_args = {'cmap':'Spectral'} # default color using cmap
     elif color!=None:
-        plt_args = {'color':color}
+        if isinstance(color, str): # set colour directly using color
+            plt_args = {'color':color}
+        elif isinstance(color, list): # set colour using list of color 
+            # custom cmap based on number of df columns
+            n = len(df.columns)
+            custom_cmap = LinearSegmentedColormap.from_list('custom_cmap', color, N=256).resampled(n)
+            plt_args = {'cmap':custom_cmap}
     elif cmap!=None:
-        plt_args = {'cmap':cmap}
+        plt_args = {'cmap':cmap} # set colour using cmap
 
     # plot line or others
     if plot_mode == 'line':
-        if x_axis is not None:
+        if x_axis != '':
             ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, **plt_args, x=x_axis)
         else:
             ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, **plt_args)
     else:
-        if x_axis is not None:
+        if x_axis != '':
             ax = df.plot(kind=plot_mode, stacked=stacked, width=width, figsize=figsize, **plt_args, x=x_axis)
         else:
             ax = df.plot(kind=plot_mode, stacked=stacked, width=width, figsize=figsize, **plt_args)
-
-    # option to plot bar
-    # if plot_mode == 'bar':
-    #     if x_axis is not None:
-    #         ax = df.plot(kind='bar', stacked=stacked, width=width, figsize=figsize, cmap=cmap, x=x_axis)
-    #     else:
-    #         ax = df.plot(kind='bar', stacked=stacked, width=width, figsize=figsize, cmap=cmap)
-
-    # # option to plot horizontal bar
-    # elif plot_mode == 'barh':
-    #     if x_axis is not None:
-    #         ax = df.plot(kind='barh', stacked=stacked, width=width, figsize=figsize, cmap=cmap, x=x_axis)
-    #     else:
-    #         ax = df.plot(kind='barh', stacked=stacked, width=width, figsize=figsize, cmap=cmap)
-
-    #     # ax = df.plot.barh(stacked=stacked, width=width, figsize=figsize, cmap=cmap)
-
-    # # option to plot line
-    # elif plot_mode == 'line':
-    #     if x_axis is not None:
-    #         ax = df.plot(kind='line', stacked=stacked, figsize=figsize, cmap=cmap, x=x_axis)
-    #     else:
-    #         ax = df.plot(kind='line', stacked=stacked, figsize=figsize, cmap=cmap)#, y=df.columns.tolist(), x=df.index)
-
-    # # pass pd.DataFrame.plot kind
-    # else:
-    #     ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, cmap=cmap)
 
     # ---- annotate plot -----
 
