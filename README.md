@@ -4,7 +4,8 @@
 <p align="center">
 <img src="/img/biospecml-logo.svg" alt="drawing" width="50%" />
 </p>
-# BioSpecML
+
+# Introduction
 A python code library package for spectra processing and analysis. Project is on-going development.
 
 # Installation
