@@ -102,7 +102,7 @@ def upsampling_via_smote(X, y, random_state:int=42, sampling_strategy:str='auto'
     SMOTE on X matrix.
 
     """
-    if isinstance(X, pd.DataFrame()):
+    if isinstance(X, pd.DataFrame):
         # convert col to str to avoid being upsampled
         X.columns = X.columns.astype(str) 
     smote = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state)
