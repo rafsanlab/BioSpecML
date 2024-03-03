@@ -1,6 +1,7 @@
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/rafsanlab/biospecml/total)
 ![GitHub Release](https://img.shields.io/github/v/release/rafsanlab/biospecml)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/rafsanlab/biospecml)
+![logo](/img/biospecml-logo.png)
 
 # BioSpecML
 A python code library package for spectra processing and analysis. Project is on-going development.
