@@ -45,10 +45,11 @@ def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
 
 
 def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
-            drop_rows:list=None, plot_cols:list=None, set_grid:bool|dict=False,
+            drop_rows:list=None, plot_cols:list=None, set_grid:bool|dict=True,
             linewidth:float=1.5, width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
             cmap:str=None, color:str|list=None, hide_spines:list=['top', 'right'],
-            stacked:bool=False, fname:str=None, legend_outside:bool=False,
+            stacked:bool=False, fname:str=None,
+            legend_outside:bool=False, legend_loc:str='upper left', legend_col:int=1,
             spines_width:float=1.5,  x_axis:str='', xlabel=None, ylabel=None, title=None,
             show_plot=True, annotation_dict:dict=None, annotation_args:list=None,
             yscale:float=None, xtick_rotate:float=None, line_styles:list=None,
@@ -168,10 +169,14 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     plt.tight_layout()
     plt.gcf().set_dpi(show_dpi) 
 
+    # legend arguments
     if legend_outside!=False:
-        ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+        ax.legend(loc=legend_loc, bbox_to_anchor=(1, 1), ncol=legend_col)
+    else:
+        ax.legend(loc=legend_loc, ncol=legend_col)
 
-    if set_grid is not None:
+    # grids arguments
+    if set_grid is not False:
         if isinstance(set_grid, dict):
             ax.grid(True, **set_grid)
         else:

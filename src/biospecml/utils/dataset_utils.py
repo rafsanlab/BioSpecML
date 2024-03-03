@@ -125,3 +125,28 @@ def upsampling_via_smote(X, y, random_state:int=42, sampling_strategy:str='auto'
     smote = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state)
     X_resampled, y_resampled = smote.fit_resample(X, y)
     return X_resampled, y_resampled
+
+
+def create_tabular_bags(
+        df, label_col:str, num_bags:int, bags_id_connector:str='_',
+        bags_id_col:str='Bags ID', verbose:bool=True,
+        ):
+    """
+    Turn a tabular data into bags with instances based on required bags per label.
+    Return bags_df with unique bags_id_col as bag identifier.
+
+    """
+    bags_df, bags_list = pd.DataFrame(), [] # variables
+    grouped_df = df.groupby(label_col) # grouped df by label_col
+
+    for label, group in grouped_df:
+        counter = 0 # counter for bags id
+        if verbose: 
+            print(f'Bag: {label},\t total instances: {group.shape}')
+        bags = np.array_split(group, num_bags) # split group based on bags number
+        for bag in bags:
+            counter += 1
+            bag[bags_id_col] = bag[label_col]+f'{bags_id_connector}{counter}' # unique bags id
+        bags_list.extend(bags) # compile all bags
+    bags_df = pd.concat(bags_list) # turn all bags to single df
+    return bags_df
