@@ -1,4 +1,5 @@
 from sklearn.model_selection import train_test_split
+from imblearn.over_sampling import SMOTE
 import numpy as np
 import pandas as pd
 
@@ -94,3 +95,16 @@ def calc_ds_mean_std(df, replace_zeros:bool=True, replace_nans:bool=True,
         mean_values.replace([np.inf, -np.inf], replace_value, inplace=True)
         std_values.replace([np.inf, -np.inf], replace_value, inplace=True)
     return mean_values, std_values
+
+
+def upsampling_via_smote(X, y, random_state:int=42, sampling_strategy:str='auto'):
+    """
+    SMOTE on X matrix.
+
+    """
+    if isinstance(X, pd.DataFrame()):
+        # convert col to str to avoid being upsampled
+        X.columns = X.columns.astype(str) 
+    smote = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state)
+    X_resampled, y_resampled = smote.fit_resample(X, y)
+    return X_resampled, y_resampled
