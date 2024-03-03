@@ -9,7 +9,24 @@ def paths_splitter(df_paths, path_col, label_col, test_size:float=0.2,
                    manual_train_list:list|None=None, manual_test_list:list|None=None,
                    verbose:bool=True,
                     ):
+    """
+    Args:
+    - df_paths (pd.DataFrame): containing columns: [path_col|label_col]
+    - path_col (str): column name containing file paths
+    - label_col (str): column name containing labels or classes
+    - test_size (float, optional):  test split proportion, default is 0.2.
+    - split_method (str, optional): method used to split the data. Options are 'random' for 'manual'.
+    - stratify_col (str, optional): column name to stratify by during splitting. Default is None.
+    - random_state (int, optional): seed used by the random number generator. Default is 42.
+    - manual_train_list (list, optional): list of file paths to include in the training set. If provided, overrides the test_size and split_method parameters. Default is None.
+    - manual_test_list (list, optional): list of file paths to include in the test set. If provided, overrides the test_size and split_method parameters. Default is None.
+    - verbose (bool, optional): whether to print information about the split. Default is True.
 
+    Returns:
+    - train_paths (pd.DataFrame): DataFrame containing training set paths and labels.
+    - test_paths (pd.DataFrame): DataFrame containing test set paths and labels.
+
+    """
     if split_method == 'random':
 
         # stratify condition
