@@ -224,7 +224,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
         plt.title(title, fontweight='extra bold')
 
     if fname != None:
-        plt.savefig(fname, dpi=save_dpi)
+        plt.savefig(fname, dpi=save_dpi, bbox_inches='tight')
     
     if show_plot != False:
         plt.show()
@@ -277,7 +277,7 @@ def plot_images_from_folder(
         plt.show()
 
     if fname!=None:
-        plt.savefig(fname, dpi=save_dpi)
+        plt.savefig(fname, dpi=save_dpi, bbox_inches='tight')
     
     plt.close(fig)
     plt.clf() 
