@@ -7,9 +7,9 @@ from torch.utils.data import DataLoader
 
 class TabularDataset(Dataset):
     def __init__(self, df=None, file_path:str=None, file_delimiter:str='\t',
-                 label_col:str='', metadata_cols:list=None, label_dict:dict=None, 
-                 transform_data:bool=True, mean=None, std=None,
-                 unsqueeze:bool=False):
+                 index_col=None, label_col:str='', metadata_cols:list=None,
+                 label_dict:dict=None,  transform_data:bool=True,
+                 mean=None, std=None, unsqueeze:bool=False):
         """
         Read or accept df tabular data, must have label column for each rows.
         Options to convert labels to value of a dictionary by supplying label_dict.
@@ -21,7 +21,7 @@ class TabularDataset(Dataset):
         if df != None:
             self.df = df
         elif file_path != None:
-            self.df = pd.read_csv(file_path, delimiter=file_delimiter)
+            self.df = pd.read_csv(file_path, delimiter=file_delimiter, index_col=index_col)
         else:
             raise Exception('Please provide *df or *file_path argument.')
 
