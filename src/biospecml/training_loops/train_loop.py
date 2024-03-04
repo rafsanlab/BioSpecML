@@ -95,8 +95,10 @@ import os
 
 # --------------- running loop ---------------
 
+# --------------- running loop ---------------
+
 def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
-              running_type:str='prediction',
+              running_type:str='prediction', verbose:bool=True,
               savedir:str=None, f1_average:str='macro', validation_mode:bool=False,
               one_epoch_mode:bool=False, metrics_list:list=None,
               ):
@@ -194,13 +196,21 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
             stat_fname = 'stats_train.json'
 
         # print and append metrics
-        print(f'{text1} Epoch {epoch:03d}', end=" - ")
+        # print(f'{text1} Epoch {epoch:03d}', end=" - ")
         for key, value in epoch_metrics.items():
             metrics[key].append(value)
-            if key!= 'epochs':
-                print(f"{key} : {value:.6f}", end=" | ")
-        print()
+            # if key!= 'epochs':
+                # print(f"{key} : {value:.6f}", end=" | ")
+        # print()
 
+        # print some stats
+        if verbose:
+            print(f'{text1} Epoch {epoch:03d}', end=" - ")
+            for key, value in epoch_metrics.items():
+                if key!= 'epochs':
+                    print(f"{key} : {value:.6f}", end=" | ")
+            print()
+                
         # condition to save metrics, save every epoch to be safe
         if savedir != None:
             dir_metrics = os.path.join(savedir, stat_fname)
@@ -212,7 +222,7 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
 
 def train_val_loop(model, device, num_epochs, criterion, optimizer,
                    train_loader, test_loader=None, trained_num_epochs:int=None,
-                   running_type:str='predictions',
+                   running_type:str='predictions', verbose:bool=True,
                    f1_average:str='macro', metrics_list:list=['f1', 'accuracy'],
                    savedir:str=None, epoch_save_checkpoints:list=[],
                    save_model:bool=True,
@@ -239,6 +249,8 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
     main_metrics = {}
     main_metrics['epochs'] = []
     savedir = os.getcwd() if savedir is None or savedir == '' else savedir
+    traindir = os.path.join(savedir, 'training')
+    os.makedirs(traindir, exist_ok=True)
 
     for epoch in range(start_epoch, num_epochs+1, 1):
 
@@ -253,6 +265,7 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
                 validation_mode = False,
                 one_epoch_mode = True, 
                 metrics_list = metrics_list,
+                verbose = False,
                 )
             container_metrics.append(("train", train_metrics))
 
@@ -263,13 +276,13 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
                 validation_mode = True,
                 one_epoch_mode = True, 
                 metrics_list = metrics_list,
+                verbose = False,
                 )
             container_metrics.append(("val.", test_metrics))
         
         # ----- collect metrics -----
 
         main_metrics['epochs'].append(epoch)
-        
         for phase, metrics in container_metrics:
             for k, v in metrics.items():
                 new_k = f'{phase} {k}' # combine phase to dict's key
@@ -278,7 +291,19 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
                 else:
                     main_metrics[new_k].extend(v)
 
-        stat_fname_path = os.path.join(savedir, f'stats_e{num_epochs}.json')
+
+        # print some metrics stats
+        if verbose:
+            print(f'Epoch {epoch:03d}', end=" : ")
+            for phase, metrics in container_metrics:
+                print(f'|| {phase.upper()}', end=' ')
+                for key, value in metrics.items():
+                    if 'epochs' not in key:
+                        print(f"| {key} : {value[-1]:.6f}", end=" ")
+            print()
+
+        # save metrics
+        stat_fname_path = os.path.join(traindir, f'stats_e{num_epochs}.json')
         with open(stat_fname_path, 'w') as json_file:
                 json.dump(main_metrics, json_file, indent=4)
 
@@ -302,7 +327,7 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
     # ----- option to save model -----
 
     if save_model:
-        model_path = os.path.join(savedir, f'model_e{epoch}.pth')
+        model_path = os.path.join(traindir, f'model_e{epoch}.pth')
         torch.save(model, model_path)
         print(f'Saved model at epoch {epoch}.')
 
