@@ -66,3 +66,4 @@ class TabularDataset(Dataset):
             data = data.unsqueeze(0)
 
         return data, label
+    
