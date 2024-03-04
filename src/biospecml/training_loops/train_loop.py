@@ -296,7 +296,7 @@ def train_val_loop(model, device, num_epochs, criterion, optimizer,
         if verbose:
             print(f'Epoch {epoch:03d}', end=" : ")
             for phase, metrics in container_metrics:
-                print(f'|| {phase.upper()}', end=' ')
+                print(f'|| {phase.upper()}', end=' |')
                 for key, value in metrics.items():
                     if 'epochs' not in key:
                         print(f"| {key} : {value[-1]:.6f}", end=" ")
