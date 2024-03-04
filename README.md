@@ -2,7 +2,7 @@
 ![GitHub Release](https://img.shields.io/github/v/release/rafsanlab/biospecml)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/rafsanlab/biospecml)
 <p align="center">
-<img src="/img/biospecml-logo.svg" alt="drawing" width="50%" />
+<img src="/img/biospecml-logo-v2.svg" alt="drawing" width="50%" />
 </p>
 
 # Introduction
