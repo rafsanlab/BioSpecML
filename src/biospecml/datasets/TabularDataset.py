@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 class TabularDataset(Dataset):
     def __init__(self, df=None, file_path:str=None, file_delimiter:str='\t',
-                 index_col=None, label_col:str='', metadata_cols:list=None,
+                 index_col=None, label_col:str='', metadata_cols:list=[],
                  label_dict:dict=None,  transform_data:bool=True,
                  mean=None, std=None, unsqueeze:bool=False):
         """
@@ -33,12 +33,12 @@ class TabularDataset(Dataset):
         self.labels = self.labels.values.astype(np.float32)
 
         # drop metadata, if None add label_col to metadata
-        if metadata_cols != None:
+        if len(metadata_cols) > 0:
             metadata_cols.append(label_col)
         else:
             metadata_cols = [label_col]
         metadata_cols_ = [col for col in metadata_cols if col in self.df.columns]
-        if metadata_cols_!=None:
+        if metadata_cols_ is not None or len(metadata_cols_)>0:
             self.df = self.df.drop(metadata_cols_, axis=1)
         self.df = self.df.values.astype(np.float32)
 
