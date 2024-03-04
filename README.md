@@ -1,6 +1,11 @@
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/rafsanlab/biospecml/total)
 ![GitHub Release](https://img.shields.io/github/v/release/rafsanlab/biospecml)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/rafsanlab/biospecml)
+![GitHub Repo stars](https://img.shields.io/github/stars/:rafsanlab/:biospecml)
+![GitHub forks](https://img.shields.io/github/forks/:rafsanlab/:biospecml)
+![GitHub License](https://img.shields.io/github/license/:rafsanlab/:biospecml)
+![GitHub watchers](https://img.shields.io/github/watchers/:rafsanlab/:biospecml)
+
 <p align="center">
 <img src="/img/biospecml-logo-v2.svg" alt="drawing" width="50%" />
 </p>
