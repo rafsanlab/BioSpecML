@@ -45,9 +45,9 @@ def read_mat(filename):
         return  w, h, p, wavenumber, sp
 
 
-def convert_mat_oct(sp, wn, tranpose_data:bool=False, key_name:str='ab', fname:str=None,
-                    return_array:bool=False
-                    ):
+def save_mat_oct(sp, wn, tranpose_data:bool=False, key_name:str='ab',
+                 fname:str=None, return_array:bool=False
+                 ):
     """
     Convert spectral array from mat files to OCTAVVS friendly format by inserting
     wavenumber value in the first postion of spectral data.
@@ -75,3 +75,4 @@ def convert_mat_oct(sp, wn, tranpose_data:bool=False, key_name:str='ab', fname:s
     
     if return_array:
         return new_sp
+    
