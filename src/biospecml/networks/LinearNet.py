@@ -81,8 +81,8 @@ class LinearNet(nn.Module):
                     x = block(x)
 
         # final layer and/or add softmax layer
-        x = self.classification_layer(x)
         if self.use_softmax:
-            return F.softmax(x, dim=1)
+            x = F.softmax(x, dim=1) # using dim i; (batch, i)
         else:
-            return x
+            x = self.classification_layer(x)
+        return x
