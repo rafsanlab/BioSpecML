@@ -13,12 +13,15 @@
 # Introduction
 A python code library package for spectra processing and analysis. Project is on-going development.
 
-Features:
+**Features**:
 - read and apply processing on spectroscopy data
 - robust plotting functions to plot spectral data
 - prepare dataset and neural networks (UNet, LinearNet etc.)
 - features packed training loop for model training
- 
+
+**Disclaimer**:
+- This is a personal repo for personal use, but feel free to use it. Note that not all codes are validated.
+
 # Installation
 
 ### If you want to be able to edit the code:
