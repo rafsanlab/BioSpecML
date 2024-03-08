@@ -58,7 +58,18 @@ class LinearNet(nn.Module):
             )
         self.add_num_blocks = add_num_blocks
         self.classification_layer = nn.Linear(hidden_size, num_classes)
-
+    
+    def __str__(self):
+        layers = [
+            f'First Block: {self.first_block}',
+        ]
+        layers += [f'Additional Block {i}: {block}' for i, block in enumerate(self.basic_blocks, 1)]
+        if self.use_softmax:
+            layers.append(f'Softmax Layer.')
+        else:    
+            layers.append(f'Classification Layer: {self.classification_layer}')
+        return '\n'.join(layers)
+    
     def forward(self, x):
         
         # check and apply residual connection in first block
