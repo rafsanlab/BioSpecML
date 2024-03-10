@@ -1,4 +1,4 @@
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from sklearn.metrics import f1_score, accuracy_score
@@ -40,13 +40,13 @@ def calc_metric_prediction(inputs, outputs, metrics_list=['accuracy', 'f1'], f1_
     return metrics
 
 
-def calc_metric_similarity(inputs, outputs, metrics_list=['SSIM']):
+def calc_metric_similarity(targets, outputs, metrics_list=['SSIM']):
     """
     Evaluate the performance of a recontructive model using various metrics.
 
     Args:
-    - inputs (np.ndarray): Original input images.
-    - outputs (np.ndarray): Reconstructed output images.
+    - targets (np.ndarray): Original input images OR target series predictions.
+    - outputs (np.ndarray): Reconstructed output images OR series predictions.
     - metric (str): Metric to compute. Options: 'MSE', 'BCE', 'MAE', 'SSIM', 'PSNR'.
 
     Returns:
@@ -68,20 +68,31 @@ def calc_metric_similarity(inputs, outputs, metrics_list=['SSIM']):
 
         # Mean Squared Error (MSE)
         if metric=='MSE':
-            metrics['MSE'] = mean_squared_error(inputs, outputs)
+            metrics['MSE'] = mean_squared_error(targets, outputs)
 
         # Mean Absolute Error (MAE)
         if metric=='MAE':
-            metrics['MAE'] = mean_absolute_error(inputs, outputs)
+            metrics['MAE'] = mean_absolute_error(targets, outputs)
 
         # Structural Similarity Index (SSIM)
         if metric=='SSIM':
-            multichannel = False if len(inputs.shape) == 2 else True
-            ssim_value = ssim(inputs, outputs, multichannel=multichannel)
+            multichannel = False if len(targets.shape) == 2 else True
+            ssim_value = ssim(targets, outputs, multichannel=multichannel)
             metrics['SSIM'] = np.mean(ssim_value)
 
         # Peak Signal-to-Noise Ratio (PSNR)
         if metric=='PSNR':
-            metrics['PSNR'] = psnr(inputs, outputs)
+            metrics['PSNR'] = psnr(targets, outputs)
+        
+        if 'MAPE' in metrics:
+            absolute_percentage_errors = abs((targets - outputs) / targets)
+            metrics['MAPE'] = np.mean(absolute_percentage_errors) * 100
+
+        if 'SMAPE' in metrics:
+            symmetric_absolute_percentage_errors = 2 * np.abs(targets - outputs) / (np.abs(targets) + np.abs(outputs))
+            metrics['SMAPE'] = np.mean(symmetric_absolute_percentage_errors) * 100
+
+        if 'R-squared' in metrics:
+            metrics['R-squared'] = r2_score(targets, outputs)
 
     return metrics
