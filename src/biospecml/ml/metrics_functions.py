@@ -58,7 +58,7 @@ def calc_metric_similarity(targets, outputs, metrics_list=['SSIM']):
 
     """
     metrics = {}
-    metrics_list_ref = ['MSE', 'MAE', 'SSIM', 'PSNR']
+    metrics_list_ref = ['MSE', 'MAE', 'SSIM', 'PSNR', 'MAPE', 'SMAPE', 'R-squared']
 
     for metric in metrics_list:
 
@@ -84,15 +84,18 @@ def calc_metric_similarity(targets, outputs, metrics_list=['SSIM']):
         if metric=='PSNR':
             metrics['PSNR'] = psnr(targets, outputs)
         
-        if 'MAPE' in metrics:
+        # absolute percentage error (MAPE)
+        if metric=='MAPE':
             absolute_percentage_errors = abs((targets - outputs) / targets)
             metrics['MAPE'] = np.mean(absolute_percentage_errors) * 100
 
-        if 'SMAPE' in metrics:
+        # symmetric absolute percentage error (SMAPE)
+        if metric=='SMAPE':
             symmetric_absolute_percentage_errors = 2 * np.abs(targets - outputs) / (np.abs(targets) + np.abs(outputs))
             metrics['SMAPE'] = np.mean(symmetric_absolute_percentage_errors) * 100
 
-        if 'R-squared' in metrics:
+        # r-squared
+        if metric=='R-squared':
             metrics['R-squared'] = r2_score(targets, outputs)
 
     return metrics
