@@ -46,7 +46,7 @@ import os
 #     return metrics
 
 
-# def calc_metric_reconstruction(inputs, outputs, metrics_list=['SSIM']):
+# def calc_metric_similarity(inputs, outputs, metrics_list=['SSIM']):
 #     """
 #     Evaluate the performance of a recontructive model using various metrics.
 
@@ -60,7 +60,7 @@ import os
 
 #     Example:
 #     >>> arr1, arr2 = np.random.rand(1, 3, 16, 16), np.random.rand(1, 3, 16, 16)
-#     >>> metrics = calc_metric_reconstruction(arr1, arr2, metrics_list=['SSIM'])
+#     >>> metrics = calc_metric_similarity(arr1, arr2, metrics_list=['SSIM'])
 
 #     """
 #     metrics = {}
@@ -106,7 +106,7 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
     A basic running loop.
 
     """
-    running_types = ['prediction', 'reconstruction']
+    running_types = ['prediction', 'similarity']
     if running_type not in running_types:
         raise Exception(f'Choose *running_type : {running_types}')
     
@@ -172,8 +172,8 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer,
                 targets = targets.numpy()
                 batch_metrics = calc_metric_prediction(preds, targets, metrics_list, f1_average)
             
-            # get reconstruction metrics
-            if running_types=='reconstruction':
+            # get similarity metrics
+            if running_type=='similarity':
                 outputs, targets = outputs.detach().numpy(), targets.detach().numpy()
                 batch_metrics = calc_metric_similarity(outputs, targets, metrics_list)
   
