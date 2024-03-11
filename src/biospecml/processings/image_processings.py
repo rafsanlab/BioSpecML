@@ -1,6 +1,7 @@
 
 import numpy as np
 import cv2 as cv
+import matplotlib.pyplot as plt
 
 def img_inverse(img:np.ndarray, point:tuple=(0,0), background:int=0):
     """
@@ -140,3 +141,18 @@ def img_rm_holes(img, n:float=0.1, holes_kernel:tuple=(5,5), iterations:int=2):
          )
   
     return close
+
+
+def invert_mask(arr, target_value:int|float=0, coor_to_check:tuple= (0,0),
+                show_mask:bool=False):
+    if len(arr.shape)!=2:
+        raise TypeError('Array should be 2 dimensional')
+    coor_value = arr[coor_to_check[0],coor_to_check[1]]
+    if coor_value != target_value:
+        arr = 1 - arr
+    else:
+        arr = arr
+    if show_mask:
+        plt.imshow(arr, cmap='gray')
+        plt.show()
+    return arr
