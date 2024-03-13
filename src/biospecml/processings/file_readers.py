@@ -91,7 +91,6 @@ def read_mat(filename, instrument='agilent'):
             if 'wh' in s.keys():
                 (l,*_) = s['wh']
                 w , h = l
-                print(w, h)
             else:     
                 w = int(np.sqrt(sp.shape[1]))
                 h = sp.shape[1] // w
