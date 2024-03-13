@@ -1,3 +1,12 @@
+"""
+
+Functions to read and save .mat file from Agilent
+and Speco instrument.
+
+By Rifqi @rafsanlab
+
+"""
+
 import os
 import scipy.io as sio
 import numpy as np
