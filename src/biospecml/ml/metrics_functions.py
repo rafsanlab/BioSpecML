@@ -41,6 +41,7 @@ def calc_metric_prediction(inputs, outputs, metrics_list=['accuracy', 'f1'], f1_
     return metrics
 
 
+def calc_metric_similarity(targets, outputs, metrics_list=['SSIM'], jaccard_average:str='weighted',
                            jaccard_zero_division:int=1,
                            ):
     """
