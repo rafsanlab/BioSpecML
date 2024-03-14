@@ -2,6 +2,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from sklearn.metrics import f1_score, accuracy_score
+from sklearn.metrics import mean_squared_error, jaccard_score
 import numpy as np
 
 # --------------- helper functions ---------------
@@ -40,7 +41,8 @@ def calc_metric_prediction(inputs, outputs, metrics_list=['accuracy', 'f1'], f1_
     return metrics
 
 
-def calc_metric_similarity(targets, outputs, metrics_list=['SSIM']):
+                           jaccard_zero_division:int=1,
+                           ):
     """
     Evaluate the performance of a recontructive model using various metrics.
 
@@ -58,7 +60,7 @@ def calc_metric_similarity(targets, outputs, metrics_list=['SSIM']):
 
     """
     metrics = {}
-    metrics_list_ref = ['MSE', 'MAE', 'SSIM', 'PSNR', 'MAPE', 'SMAPE', 'R-squared']
+    metrics_list_ref = ['MSE', 'RMSE', 'MAE', 'Jaccard', 'SSIM', 'DICE', 'PSNR', 'MAPE', 'SMAPE', 'R-squared']
 
     for metric in metrics_list:
 
@@ -70,15 +72,33 @@ def calc_metric_similarity(targets, outputs, metrics_list=['SSIM']):
         if metric=='MSE':
             metrics['MSE'] = mean_squared_error(targets, outputs)
 
+        # Root MSE (RMSE)
+        if metric == 'RMSE':
+            mse = mean_squared_error(targets, outputs)
+            metrics['RMSE'] = np.sqrt(mse)
+
         # Mean Absolute Error (MAE)
         if metric=='MAE':
             metrics['MAE'] = mean_absolute_error(targets, outputs)
 
+        if metric=='Jaccard':
+            if len(targets.shape)>1:
+                targets = targets.ravel()
+            if len(outputs.shape)>1:
+                outputs = outputs.ravel()
+            metrics['Jaccard'] = jaccard_score(targets, outputs, average=jaccard_average, zero_division=jaccard_zero_division)
+
         # Structural Similarity Index (SSIM)
         if metric=='SSIM':
             multichannel = False if len(targets.shape) == 2 else True
-            ssim_value = ssim(targets, outputs, multichannel=multichannel)
+            ssim_value = ssim(targets, outputs, channel_axis=multichannel)
             metrics['SSIM'] = np.mean(ssim_value)
+
+        # DICE Scores
+        if metric=='DICE':
+            intersection = np.logical_and(targets, outputs)
+            union = np.logical_or(targets, outputs)
+            metrics['DICE'] = (2.0 * intersection.sum()) / (union.sum() + 1e-8)
 
         # Peak Signal-to-Noise Ratio (PSNR)
         if metric=='PSNR':
@@ -94,7 +114,7 @@ def calc_metric_similarity(targets, outputs, metrics_list=['SSIM']):
             symmetric_absolute_percentage_errors = 2 * np.abs(targets - outputs) / (np.abs(targets) + np.abs(outputs))
             metrics['SMAPE'] = np.mean(symmetric_absolute_percentage_errors) * 100
 
-        # r-squared
+        # R-squared
         if metric=='R-squared':
             metrics['R-squared'] = r2_score(targets, outputs)
 
