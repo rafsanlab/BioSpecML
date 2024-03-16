@@ -3,6 +3,7 @@ import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
 
+
 def img_inverse(img:np.ndarray, point:tuple=(0,0), background:int=0):
     """
     Inverse image using cv.bitwise_not by checking the point given whether it fit
@@ -22,7 +23,6 @@ def img_inverse(img:np.ndarray, point:tuple=(0,0), background:int=0):
         return img
     else:
         return img
-
 
 
 def img_thres_otsu(img, blur_kernel:tuple=(3,3), tval:int=0, maxval:int=255):
@@ -156,3 +156,21 @@ def invert_mask(arr, target_value:int|float=0, coor_to_check:tuple= (0,0),
         plt.imshow(arr, cmap='gray')
         plt.show()
     return arr
+
+
+def apply_thresholding(img, blur_kernel=(3,3), rm_debris=True, debris_n=0.01,
+                       rm_holes=True, holes_n=0.01, holes_iter=1, invert_output=False
+                       ):
+    """
+    Apply otsu then series of processings including debris removal, holes remover and
+    option to invert the fina image.
+
+    """
+    thresh = img_thres_otsu(img, blur_kernel=blur_kernel)
+    if rm_debris:
+        thresh = img_rm_debris(thresh, n=debris_n)
+    if rm_holes:
+        thresh = img_rm_holes(thresh, n=holes_n, iterations=holes_iter)
+    if invert_output:
+        thresh = cv.bitwise_not(thresh)
+    return thresh
