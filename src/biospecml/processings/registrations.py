@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
-import ..processings.image_processings as image_processings
+import .processings.image_processings as image_processings
 # import .image_processings
 
 def search_matching_points(
