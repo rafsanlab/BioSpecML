@@ -44,12 +44,12 @@ def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
                 plt.text(key, y, val, rotation=rot, va=va, ha=ha, fontsize=fontsize, **common_params)
 
 
-def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
-            drop_rows:list=None, plot_cols:list=None, set_grid:bool|dict=True,
+def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None, groupby:str|int|float=None,
+            drop_rows:list=None, plot_cols:list=None, plt_args:dict={}, set_grid:bool|dict=True,
             linewidth:float=1.5, width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
             cmap:str=None, color:str|list=None, hide_spines:list=['top', 'right'],
             stacked:bool=False, fname:str=None,
-            legend_outside:bool=False, legend_loc:str='best', legend_col:int=1,
+            legend_off:bool=False, legend_outside:bool=False, legend_loc:str='best', legend_col:int=1,
             spines_width:float=1.5,  x_axis:str='', xlabel=None, ylabel=None, title=None,
             show_plot=True, annotation_dict:dict=None, annotation_args:list=None,
             yscale:float=None, xtick_rotate:float=None, line_styles:list=None,
@@ -117,20 +117,28 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     
 
     # ----- plotting ------
-    
+
     # set plotting colors
     if color==None and cmap==None:
-        plt_args = {'cmap':'Spectral'} # default color using cmap
+        plt_args.update({'cmap': 'Spectral'}) # default color using cmap
+        # plt_args = {'cmap':'Spectral'} # default color using cmap
     elif color!=None:
         if isinstance(color, str): # set colour directly using color
-            plt_args = {'color':color}
+            plt_args.update({'color':color})
+            # plt_args = {'color':color}
         elif isinstance(color, list): # set colour using list of color 
             # custom cmap based on number of df columns
             n = len(df.columns)
             custom_cmap = LinearSegmentedColormap.from_list('custom_cmap', color, N=256).resampled(n)
-            plt_args = {'cmap':custom_cmap}
+            plt_args.update({'cmap':custom_cmap})
+            # plt_args = {'cmap':custom_cmap}
     elif cmap!=None:
-        plt_args = {'cmap':cmap} # set colour using cmap
+        plt_args.update({'cmap':cmap}) # set colour using cmap
+        # plt_args = {'cmap':cmap} # set colour using cmap
+
+    # make subgroups for plotting
+    if groupby!=None:
+        df = df.groupby(groupby)
 
     # plot line or others
     if plot_mode == 'line':
@@ -140,9 +148,9 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, linewidth=linewidth, **plt_args)
     else:
         if x_axis != '':
-            ax = df.plot(kind=plot_mode, stacked=stacked, width=width, figsize=figsize, **plt_args, x=x_axis)
+            ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, **plt_args, x=x_axis)
         else:
-            ax = df.plot(kind=plot_mode, stacked=stacked, width=width, figsize=figsize, **plt_args)
+            ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, **plt_args)
 
     # ---- annotate plot -----
 
@@ -170,10 +178,13 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     plt.gcf().set_dpi(show_dpi) 
 
     # legend arguments
-    if legend_outside!=False:
-        ax.legend(loc=legend_loc, bbox_to_anchor=(1, 1), ncol=legend_col)
+    if legend_off:
+        ax.legend().remove() 
     else:
-        ax.legend(loc=legend_loc, ncol=legend_col)
+        if legend_outside!=False:
+            ax.legend(loc=legend_loc, bbox_to_anchor=(1, 1), ncol=legend_col)
+        else:
+            ax.legend(loc=legend_loc, ncol=legend_col)
 
     # grids arguments
     if set_grid is not False:
@@ -286,3 +297,4 @@ def plot_images_from_folder(
     
     plt.close(fig)
     plt.clf() 
+    
