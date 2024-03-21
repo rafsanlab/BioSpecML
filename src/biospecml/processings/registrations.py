@@ -214,7 +214,7 @@ def imgs_transformation(
 
 
             for i in range(0, transformed.shape[2]):
-                transformed_channel = cv.warpAffine(img_src[:,:,i], M, img_ref_size, flags=cv.INTER_NEAREST, borderMode=borderMode)
+                transformed_channel = cv.warpAffine(img_src[:,:,i], M, img_ref_size, flags=cv.INTER_NEAREST, borderMode=border_mode)
                 transformed[:,:,i] = transformed_channel
 
             # transformed = cv2.convertScaleAbs(transformed)
