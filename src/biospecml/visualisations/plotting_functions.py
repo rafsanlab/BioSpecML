@@ -44,7 +44,7 @@ def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
                 plt.text(key, y, val, rotation=rot, va=va, ha=ha, fontsize=fontsize, **common_params)
 
 
-def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None, groupby:str|int|float=None,
+def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None, groupby=None,
             drop_rows:list=None, plot_cols:list=None, plt_args:dict={}, set_grid:bool|dict=True,
             linewidth:float=1.5, width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
             cmap:str=None, color:str|list=None, hide_spines:list=['top', 'right'],
