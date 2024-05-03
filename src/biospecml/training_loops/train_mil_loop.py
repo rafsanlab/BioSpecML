@@ -7,7 +7,7 @@ import os
 
 def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
                   savedir=None, f1_score_average='macro', validation_mode=False,
-                  use_instance_labels=True, use_bag_labels=False,
+                  use_instance_labels=True, use_bag_labels=False, verbose=True,
                   one_epoch_mode=False):
     """
     Accept bag data (Bags, N-instances, Features) and do prediction based on 
@@ -125,8 +125,9 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
         else:
             text1 = 'TRAINING'
             stat_fname = 'stats_train.json'
-
-        print(f"{text1} \t:| Epoch {epoch+1:03d} | Loss: {epoch_loss:.6f} | Accuracy: {epoch_accuracy:.4f} | F1: {epoch_f1:.4f} |")
+        
+        if verbose:
+            print(f"{text1} \t:| Epoch {epoch+1:03d} | Loss: {epoch_loss:.6f} | Accuracy: {epoch_accuracy:.4f} | F1: {epoch_f1:.4f} |")
 
         # condition to save metrics, save every epoch to be safe
         if savedir != None:
@@ -135,3 +136,127 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                 json.dump(metrics, json_file, indent=4)
 
     return model, metrics
+
+
+def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
+                   train_loader, test_loader=None, trained_num_epochs:int=None,
+                   verbose:bool=True, f1_average:str='macro',
+                   savedir:str=None, epoch_save_checkpoints:list=[],
+                   save_model:bool=True,
+                   ):
+    """
+    Example of use:
+    >>> learning_rate , weight_decay = 0.001, 0
+    >>> model, main_metrics = train_val_loop(
+    >>>     model = model,
+    >>>     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
+    >>>     num_epochs = 3,
+    >>>     criterion = nn.CrossEntropyLoss(),
+    >>>     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay),
+    >>>     train_loader = train_loader,
+    >>>     test_loader = test_loader,
+    >>>     f1_average = 'macro',
+    >>>     savedir = os.getcwd(),
+    >>>     epoch_save_checkpoints = [2,3]
+    >>> )
+    """
+    start_epoch = trained_num_epochs+1 if isinstance(trained_num_epochs, int) else 1
+    main_metrics = {}
+    main_metrics['epochs'] = []
+    savedir = os.getcwd() if savedir is None or savedir == '' else savedir
+    traindir = os.path.join(savedir, 'training')
+    os.makedirs(traindir, exist_ok=True)
+
+    for epoch in range(start_epoch, num_epochs+1, 1):
+
+        # ----- run training and validation -----
+        
+        container_metrics = []
+        
+        if train_loader != None:
+            model, train_metrics = train_mil_model(
+                model = model,
+                data_loader = train_loader,
+                device = device,
+                num_epochs = num_epochs,
+                criterion = criterion,
+                optimizer = optimizer,
+                savedir = None,
+                f1_score_average = f1_average,
+                validation_mode = False,
+                use_instance_labels = False,
+                use_bag_labels = True,
+                one_epoch_mode = True,
+                verbose = False,
+                )
+            container_metrics.append(("train", train_metrics))
+
+        if test_loader != None:
+            model, test_metrics = train_mil_model(
+                model = model,
+                data_loader = test_loader,
+                device = device,
+                num_epochs = num_epochs,
+                criterion = criterion,
+                optimizer = optimizer,
+                savedir = None,
+                f1_score_average = f1_average,
+                validation_mode = True,
+                use_instance_labels = False,
+                use_bag_labels = True,
+                one_epoch_mode = True,
+                verbose = False,
+                )
+            container_metrics.append(("val.", test_metrics))
+        
+        # ----- collect metrics -----
+
+        main_metrics['epochs'].append(epoch)
+        for phase, metrics in container_metrics:
+            for k, v in metrics.items():
+                new_k = f'{phase} {k}' # combine phase to dict's key
+                if new_k not in main_metrics:
+                    main_metrics[new_k] = v
+                else:
+                    main_metrics[new_k].extend(v)
+
+        # print some metrics stats
+        if verbose:
+            print(f'Epoch {epoch:03d}', end=" : ")
+            for phase, metrics in container_metrics:
+                print(f'|| {phase.upper()}', end=' |')
+                for key, value in metrics.items():
+                    if 'epochs' not in key:
+                        print(f"| {key} : {value[-1]:.6f}", end=" ")
+            print()
+
+        # save metrics
+        stat_fname_path = os.path.join(traindir, f'stats_e{num_epochs}.json')
+        with open(stat_fname_path, 'w') as json_file:
+                json.dump(main_metrics, json_file, indent=4)
+
+        # ----- option to save checkpoints -----
+
+        if len(epoch_save_checkpoints)>0 and epoch in epoch_save_checkpoints:
+            checkpoint_path = os.path.join(savedir, 'checkpoints')
+            checkpoint_save_path = os.path.join(checkpoint_path, 'checkpoint_e'+str(epoch)+'.pth')
+            checkpoint_stat_path = os.path.join(checkpoint_path, 'checkpoint_e'+str(epoch)+'_stats.json')
+            if not os.path.exists(checkpoint_path): os.makedirs(checkpoint_path) 
+            checkpoint = {
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'epochs': epoch,
+                }
+            torch.save(checkpoint, checkpoint_save_path)
+            with open(checkpoint_stat_path, 'w') as json_file:
+                json.dump(main_metrics, json_file, indent=4)
+            print(f'Saved checkpoint at epoch {epoch}.')
+ 
+    # ----- option to save model -----
+
+    if save_model:
+        model_path = os.path.join(traindir, f'model_e{epoch}.pth')
+        torch.save(model, model_path)
+        print(f'Saved model at epoch {epoch}.')
+
+    return model, main_metrics
