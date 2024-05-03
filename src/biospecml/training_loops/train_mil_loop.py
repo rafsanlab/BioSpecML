@@ -15,7 +15,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
     
     """
 
-    metrics = {'epoch':[], 'loss':[], 'accuracy':[],'f1':[]}
+    metrics = {'epochs':[], 'loss':[], 'accuracy':[],'f1':[]}
 
     # if this function is in another running loop, set one_epoch_mode to True
     # so regardless any epoch number, will only run for one
