@@ -108,10 +108,10 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
 
         # append all metrics to dictionary metrics
         if one_epoch_mode: # get back original epoch in this mode
-            metrics['epoch'].append(ori_epochs)
+            metrics['epochs'].append(ori_epochs)
             epoch = ori_epochs
         else:
-            metrics['epoch'].append(epoch)
+            metrics['epochs'].append(epoch)
         metrics['loss'].append(epoch_loss)
         metrics['accuracy'].append(epoch_accuracy)
         metrics['f1'].append(epoch_f1)
