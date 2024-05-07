@@ -11,25 +11,44 @@ class LinearNetBasicBlock(nn.Module):
     - out_features (int): Number of output features.
     - dropout_rate (float, optional): Dropout rate for dropout layers. Default is None.
     """
-    def __init__(self, in_features, out_features, dropout_rate=None):
+    def __init__(self, in_features, out_features, dropout_rate=None, residual_mode=False):
         super(LinearNetBasicBlock, self).__init__()
-        
+        self.residual_mode = residual_mode
         # layers in this block
         layers = [
             nn.Linear(in_features, out_features),
             nn.BatchNorm1d(out_features),
             nn.ReLU(),
+            nn.Linear(out_features, out_features),
+            nn.BatchNorm1d(out_features),
         ]
-        
-        # add dropout layer if needed
+        self.activation_layer = nn.ReLU()
         if dropout_rate != None: 
-            layers.append(nn.Dropout(p=dropout_rate))
-        
+            self.dropout_layer = nn.Dropout(p=dropout_rate)
+        else:
+            self.dropout_layer = None
+
         # unpack layers
         self.block = nn.Sequential(*layers)
+    
+    def __str__(self):
+        layers = [f'{self.block}']
+        layers.append(f'{self.activation_layer}')
+        if self.dropout_layer is not None:
+            layers.append(f'{self.dropout_layer}')
+        return '\n'.join(layers)
 
     def forward(self, x):
-        x = self.block(x)
+        if self.residual_mode:
+            identity = x
+            x = self.block(x)
+            x = identity + x
+            x = self.activation_layer(x)
+        else:
+            x = self.block(x)
+            x = self.activation_layer(x)
+        if self.dropout_layer is not None:
+            self.dropout_layer
         return x
 
 
@@ -54,7 +73,7 @@ class LinearNet(nn.Module):
         self.use_softmax = use_softmax
         self.first_layer = nn.Linear(input_size, hidden_size)  
         self.basic_blocks = nn.ModuleList(
-            [LinearNetBasicBlock(hidden_size, hidden_size, dropout_rate) for _ in range(add_num_blocks)]
+            [LinearNetBasicBlock(hidden_size, hidden_size, dropout_rate, residual_mode) for _ in range(add_num_blocks)]
             )
         self.add_num_blocks = add_num_blocks
         self.classification_layer = nn.Linear(hidden_size, num_classes)
@@ -78,19 +97,13 @@ class LinearNet(nn.Module):
         # check and add additional blocks
         if self.add_num_blocks > 0:
             for basic_block in self.basic_blocks:
-                if self.residual_mode:
-                    identity = x
-                    x = basic_block(x)
-                    x = x + identity
-                else:
-                    x = basic_block(x)
+                x = basic_block(x)
 
         x = self.classification_layer(x)
 
         if self.use_softmax:
             x = F.softmax(x, dim=1) # using dim i; (batch, i)
         return x
-
 # import torch
 # import torch.nn as nn
 # import torch.nn.functional as F
