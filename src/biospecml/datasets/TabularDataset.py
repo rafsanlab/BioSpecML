@@ -18,9 +18,9 @@ class TabularDataset(Dataset):
 
         """
         # get df or read dataframe
-        if df != None:
+        if df is not None:
             self.df = df
-        elif file_path != None:
+        elif file_path is not None:
             self.df = pd.read_csv(file_path, delimiter=file_delimiter, index_col=index_col)
         else:
             raise Exception('Please provide *df or *file_path argument.')
