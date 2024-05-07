@@ -75,7 +75,8 @@ class LinearNet(nn.Module):
         # check and apply residual connection in first block
         if self.residual_mode:
             # apply match layer so that input dim = first_block output dim
-            identity = self.match_dim_layer(x)  
+            # identity = self.match_dim_layer(x) # error: this layer introduce untrackable backwards layer
+            identity = x
             x = self.first_block(x)
             x += identity
         else:
