@@ -140,7 +140,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
 
 def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                    train_loader, test_loader=None, trained_num_epochs:int=None,
-                   verbose:bool=True, f1_average:str='macro',
+                   verbose:bool=True, f1_average:str='macro', f1_score_average_test:str='macro',
                    savedir:str=None, epoch_save_checkpoints:list=[],
                    save_model:bool=True,
                    ):
@@ -200,7 +200,7 @@ def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                 criterion = criterion,
                 optimizer = optimizer,
                 savedir = None,
-                f1_score_average = f1_average,
+                f1_score_average = f1_score_average_test,
                 validation_mode = True,
                 use_instance_labels = False,
                 use_bag_labels = True,
