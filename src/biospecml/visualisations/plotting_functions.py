@@ -297,4 +297,51 @@ def plot_images_from_folder(
     
     plt.close(fig)
     plt.clf() 
-    
+
+
+def rows_to_img(rows, label_col:str, w=28, h=28, cmap='viridis', drop_col=None, fname=None):
+    """
+    Plot images from multiple rows in a DataFrame.
+
+    Parameters:
+        rows (pandas.DataFrame): DataFrame containing rows to plot.
+        label_col (str): The name of the column containing labels.
+        w (int): Width of the image.
+        h (int): Height of the image.
+        cmap (str): Colormap to use for displaying the image.
+        drop_col (str or list): Column(s) to drop from the row before plotting.
+
+    Returns:
+        None
+    """
+    num_rows = len(rows)
+    plt.figure(figsize=(15, 5 * num_rows))  # Adjust the figure size as needed
+
+    for i, (_, row) in enumerate(rows.iterrows(), 1):
+        # Make a copy of the row to avoid modifying the original DataFrame
+        row_copy = row.copy()
+
+        # Extract label
+        label = row_copy[label_col]
+
+        # Drop label column and specified additional columns
+        if drop_col is not None:
+            if isinstance(drop_col, str):
+                drop_col = [drop_col]
+            row_copy = row_copy.drop([label_col] + drop_col)
+        else:
+            row_copy = row_copy.drop([label_col])
+
+        # Convert row values to numpy array and reshape to image dimensions
+        img = row_copy.to_numpy().reshape(w, h)
+
+        # Plot the image
+        plt.subplot(1, num_rows, i)
+        plt.imshow(img, cmap=cmap)
+        plt.title(f'Label: {label}')
+        plt.axis('off')  # Turn off axis
+
+    if fname!=None:
+        plt.savefig(fname, bbox_inches='tight')
+    plt.tight_layout()  # Adjust subplots to avoid overlap
+    plt.show()
