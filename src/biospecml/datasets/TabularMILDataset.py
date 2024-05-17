@@ -47,7 +47,6 @@ class TabularMILDataset(Dataset):
 
         # drop metadata from data
         if self.metadata_cols != None:
-            self.metadata_cols = []
             self.metadata_cols.append(self.label_col)
             self.metadata_cols.append(self.bags_id_col)
         else:
