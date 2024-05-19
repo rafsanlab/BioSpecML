@@ -5,13 +5,16 @@ import torch.optim as optim
 import json
 import os
 
-def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
+def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer=None,
                   savedir=None, f1_score_average='macro', validation_mode=False,
                   use_instance_labels=True, use_bag_labels=False, verbose=True,
-                  one_epoch_mode=False):
+                  one_epoch_mode=False, return_predictions=False):
     """
     Accept bag data (Bags, N-instances, Features) and do prediction based on 
     bag labels data either (Bags-labels, N-instances) or (Bags-labels).
+
+    Args:
+    - return_predictions(bool): return prediction by a single epoch, use with one_epoch_mode
     
     """
 
@@ -28,6 +31,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
 
         epoch_loss, epoch_accuracy, epoch_f1 = 0.0, 0.0, 0.0
         loop_count = 0 # this track batch number (more robust than using batch_num)
+        epoch_bag_predictions = []
 
         for data in data_loader:
 
@@ -99,6 +103,8 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
             # bag_predictions = torch.argmax(outputs.mean(dim=1), dim=1).numpy()  # Take mean over instances, then argmax over classes
             # targets = targets[::instance_num].numpy() # unrepeat labels
             bag_predictions = torch.argmax(outputs, dim=1).numpy()
+            if return_predictions:
+                epoch_bag_predictions.append(bag_predictions)
 
             # ----- get metrics -----
 
@@ -142,8 +148,10 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
             dir_metrics = os.path.join(savedir, stat_fname)
             with open(dir_metrics, 'w') as json_file:
                 json.dump(metrics, json_file, indent=4)
-
-    return model, metrics
+    if return_predictions:
+        return model, metrics, epoch_bag_predictions
+    else:
+        return model, metrics
 
 # def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer,
 #                   savedir=None, f1_score_average='macro', validation_mode=False,
