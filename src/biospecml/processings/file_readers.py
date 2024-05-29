@@ -14,6 +14,7 @@ import numpy as np
 
 def save_mat_oct(sp, wn, tranpose_data: bool = False, key_name: str = 'ab',
                  fname: str = None, return_array: bool = False, wh:tuple=None,
+                 do_compression:bool = True,
                  **additional_arrays
                  ):
     """
@@ -49,7 +50,7 @@ def save_mat_oct(sp, wn, tranpose_data: bool = False, key_name: str = 'ab',
     if isinstance(fname, str):
         if len(mat_arrays)<2:
             print('Consider providing w x h value to futureproof your data.')
-        sio.savemat(fname, mat_arrays)
+        sio.savemat(fname, mat_arrays, do_compression=do_compression)
 
     if return_array:
         return new_sp
