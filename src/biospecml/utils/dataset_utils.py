@@ -114,22 +114,49 @@ def calc_ds_mean_std(df, replace_zeros:bool=True, replace_nans:bool=True,
     return mean_values, std_values
 
 
-def upsampling_via_smote(X, y, random_state:int=42, sampling_strategy:str='auto'):
+def upsampling_via_smote(X, y, bygroup:bool=False, y_col=None, metadata_cols:list=[], random_state:int=42, sampling_strategy:str='auto'):
     """
     SMOTE on X matrix.
+    - X either numpy array or dataframe.
+    - bygroup (bool) : allow to return X with metadata, X must be a dataframe
+        and y_col must represent y. Set to True only when the metadata in X 
+        correspond is as unique as y_col.
 
     """
     if isinstance(X, pd.DataFrame):
         # convert col to str to avoid being upsampled
-        X.columns = X.columns.astype(str) 
+        X.columns = X.columns.astype(str)
     smote = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state)
-    X_resampled, y_resampled = smote.fit_resample(X, y)
+    
+    if bygroup==False:
+        X_resampled, y_resampled = smote.fit_resample(X, y)
+    
+    elif bygroup==True:
+        metadata_cols_ = [c for c in X.columns if c in metadata_cols]
+        X_meta = X[metadata_cols_].drop_duplicates()
+        X = X.drop(metadata_cols_, axis=1)
+        X_resampled, y_resampled = smote.fit_resample(X, y)
+
+        # expand metadata to the upsampled y
+        y_resampled_meta = pd.DataFrame()
+        for i in y_resampled.unique(): # iterate each label  
+            x_meta = X_meta[X_meta[y_col]==i] # get a single row from metadata that has label y
+            y_meta = y_resampled[y_resampled==i].to_frame() # filter the y_resampled that the label y
+            x_meta = pd.concat([x_meta]*len(y_meta), ignore_index=True) # expands the single row to match filtered y_resampled
+            x_meta.index = y_meta.index # make the expanded rows to have the same index
+            if y_col in x_meta.columns: # remove label y column if it exist in the expanded rows
+                x_meta.drop(y_col, axis=1, inplace=True)
+            y_meta = pd.concat([y_meta, x_meta], axis=1) # combine the expanded rows
+            y_resampled_meta = pd.concat([y_resampled_meta, y_meta], axis=0) # save meta labels to main df
+        
+        y_resampled = y_resampled_meta
+
     return X_resampled, y_resampled
 
 
 def create_tabular_bags(
         df, label_col:str, num_bags:int, bags_id_connector:str='_',
-        bags_id_col:str='Bags ID', verbose:bool=True,
+        bags_id_col:str='BagsID', bags_idx_col='BagsIDX', verbose:bool=True,
         ):
     """
     Turn a tabular data into bags with instances based on required bags per label.
@@ -138,15 +165,17 @@ def create_tabular_bags(
     """
     bags_df, bags_list = pd.DataFrame(), [] # variables
     grouped_df = df.groupby(label_col) # grouped df by label_col
-
+    counter_idx = 0
     for label, group in grouped_df:
         counter = 0 # counter for bags id
-        if verbose: 
+        if verbose:
             print(f'Bag: {label},\t total instances: {group.shape}')
         bags = np.array_split(group, num_bags) # split group based on bags number
         for bag in bags:
             counter += 1
+            counter_idx += 1
             bag[bags_id_col] = bag[label_col]+f'{bags_id_connector}{counter}' # unique bags id
+            bag[bags_idx_col] = counter_idx
         bags_list.extend(bags) # compile all bags
     bags_df = pd.concat(bags_list) # turn all bags to single df
     return bags_df
