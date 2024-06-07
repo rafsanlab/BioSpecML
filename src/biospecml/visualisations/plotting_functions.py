@@ -4,6 +4,7 @@ import matplotlib.image as mpimg
 from matplotlib.colors import LinearSegmentedColormap
 import pandas as pd
 import os
+from ..processings.cheimg_projections import projection_area, projection_std
 
 def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
     """
@@ -348,3 +349,148 @@ def rows_to_img(rows, label_col:str, w=28, h=28, cmap='viridis', drop_col=None, 
         plt.savefig(fname, bbox_inches='tight')
     plt.tight_layout()  # Adjust subplots to avoid overlap
     plt.show()
+
+
+
+def plot_chemimg(p, wn, method='area', cmap='viridis', title=None, fname=None, show_plot=True, title_size=10, show_axes=True):
+    """
+    Plot a chemical image.
+    
+    Parameters:
+    - p (array-like): The data to plot.
+    - wn (array-like): Wavenumbers or other axis labels.
+    - cmap (str): Colormap for the image.
+    - title (str): Title of the plot.
+    - fname (str): Filename to save the plot.
+    - show_plot (bool): Whether to show the plot.
+    - title_size (int): Font size of the title.
+    - show_axes (bool): Whether to show axes.
+    
+    Returns:
+    - None
+    """
+    if method == 'area':
+        chemimg = projection_area(p, wn)
+    elif method == 'std':
+        chemimg = projection_std(p, wn)
+    else:
+        raise ValueError('<method> should be either "area" or "std".')
+    plt.imshow(chemimg, cmap=cmap)
+    if not show_axes:
+        plt.axis('off')
+    if title is not None:
+        if isinstance(title, str):
+            plt.title(title, fontweight='extra bold', fontsize=title_size)
+        elif isinstance(title, dict):
+            title.update({'fontsize':title_size})
+            plt.title(**title)
+    plt.tight_layout()
+    if fname is not None:
+        dir_ = os.path.dirname(fname)
+        if not os.path.exists(dir_):
+            os.makedirs(dir_)
+        plt.savefig(fname, bbox_inches='tight')
+    if show_plot:
+        plt.show()
+    else:
+        plt.close()
+
+
+def plot_spectra(sp, wn, skip_zeros=False, convert_wn_to_string=False,
+                 fname=None, show_plot=True, legend_off=False, legend_outside=False,
+                 plt_type='mean', random_spectra=10, index_list=None, include_mean:bool=True,
+                 title={'label':None},
+                 xlabel:dict={'xlabel':'Wavenumber ($cm^{-1}$)', 'fontsize':10}, 
+                 ylabel:dict={'ylabel':'Absorbance (a.u)', 'fontsize':10}, 
+                 cmap='Spectral',
+                 plot_df_args=None):
+    """
+    Plot the spectra data.
+
+    Parameters:
+    - sp (array-like): The spectra data.
+    - wn (array-like): The wavenumbers.
+    - skip_zeros (bool): Whether to skip rows with zero sums.
+    - convert_wn_to_string (bool): Whether to convert wavenumbers to string.
+    - plt_type (str): Type of plot ('mean', 'random', 'index').
+    - random_spectra (int): Number of random spectra to plot if plt_type is 'random'.
+    - index_list (list): List of indices to plot if plt_type is 'index'.
+    - title (str): Title of the plot.
+    - fname (str): Filename to save the plot.
+    - show_plot (bool): Whether to show the plot.
+    - plot_df_args: (dict) Additional plotting arguments.
+
+    Returns:
+    - None
+    """
+    if convert_wn_to_string:
+        wn = [str(w) for w in wn]
+    
+    df = pd.DataFrame(sp.T, columns=wn)
+    
+    if skip_zeros:
+        df = df[df.sum(axis=1) != 0]
+
+    plot_df_args_temp = {
+        'show_plot': show_plot,
+        'legend_off':legend_off,
+        'legend_outside':legend_outside,
+        'spines_width':1,
+        'cmap':cmap,
+        }
+
+    if plot_df_args is None:
+        plot_df_args = plot_df_args_temp
+    else:
+        plot_df_args.update(plot_df_args_temp)
+
+    df_mean = df.mean().to_frame().rename(columns={0: 'Mean spectra'})
+    if plt_type == 'mean':
+        df = df_mean
+    elif plt_type == 'random':
+        if random_spectra > 0 and random_spectra <= df.shape[0]:
+            df = df.sample(random_spectra).T
+        else:
+            raise ValueError('random_spectra must be greater than 0 and less than or equal to the number of available spectra.')
+    elif plt_type == 'index':
+        if index_list is not None:
+            index_list = [idx for idx in index_list if idx < df.shape[0]]
+            if not index_list:
+                raise ValueError('None of the provided indices are valid.')
+            df = df.iloc[index_list].T
+        else:
+            raise ValueError('index_list cannot be None when plt_type is "index".')
+    if plt_type != 'mean' and include_mean == True:
+        df = pd.concat([df,df_mean], axis=1)
+    else:
+        raise ValueError('Choose between <mean>, <random>, or <index>.')
+    
+    if fname is not None:
+        dir_ = os.path.dirname(fname)
+        if not os.path.exists(dir_):
+            os.makedirs(dir_)
+
+    plot_df(df, check_data=False,
+            title=title,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            fname=fname,
+            **plot_df_args)
+
+
+def plot_chemimg_spectra(p, sp, wn, fname, cmap, plt_type, random_spectra, index_list,
+                         legend_outside, saveplotdir, show_plot, save_plot,
+                         skip_zeros=False, plot_chemimg_status=True, plot_spectra_status=True, prefix='',
+                         **args):
+    if plot_chemimg_status:
+        plot_chemimg(p, wn, show_plot=show_plot, cmap=cmap,
+                    show_axes=False,
+                    title={'label':f'{prefix}:{fname}'},
+                    fname=os.path.join(saveplotdir, f'{fname}/{prefix}_auc.png') if save_plot else None,
+                    )
+    if plot_spectra_status:
+        plot_spectra(sp, wn, show_plot=show_plot, cmap=cmap,
+                    skip_zeros=skip_zeros, index_list=index_list, plt_type=plt_type,
+                    random_spectra=random_spectra, title={'label':f'{prefix}:{fname}'},
+                    fname=os.path.join(saveplotdir, f'{fname}/{prefix}_spectra_random-mean.png') if save_plot else None,
+                    legend_off=False, legend_outside=legend_outside)

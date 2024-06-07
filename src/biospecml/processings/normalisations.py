@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import normalize
 
 def norm_peak(X, peak_range:tuple=(1620, 1680), mode:str='intensity', 
               epsilon:float=1.4013e-45, wn=None, verbose:bool=False):
@@ -48,3 +49,13 @@ def norm_peak(X, peak_range:tuple=(1620, 1680), mode:str='intensity',
         print('Mean:', norm_values)
     
     return X
+
+
+def norm_spectra(sp, method='vector'):
+    """
+    Provide sp (wn, h*w).
+
+    """
+    if method=='vector':
+        sp_norm = normalize(sp, axis=0, norm='l2')
+    return sp_norm
