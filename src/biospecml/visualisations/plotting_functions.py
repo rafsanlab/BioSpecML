@@ -50,7 +50,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             cmap:str=None, color:str|list=None, hide_spines:list=['top', 'right'],
             stacked:bool=False, fname:str=None,
             legend_off:bool=False, legend_outside:bool=False, legend_loc:str='best', legend_col:int=1,
-            spines_width:float=1.5,  x_axis:str='', xlabel=None, ylabel=None, title=None,
+            spines_width:float=1.5,  x_axis:str='', xlabel:str|dict=None, ylabel:str|dict=None, title=None,
             show_plot=True, annotation_dict:dict=None, annotation_args:list=None,
             yscale:float=None, xtick_rotate:float=None, line_styles:list=None,
             save_dpi:int=300, show_dpi:int=80,
@@ -237,7 +237,10 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             ax.set_ylabel(**ylabel)
 
     if title != None:
-        plt.title(title, fontweight='extra bold')
+        if isinstance(title, str):
+            plt.title(title, fontweight='extra bold')
+        elif isinstance(title, dict):
+            plt.title(**title)
 
     if fname != None:
         plt.savefig(fname, dpi=save_dpi, bbox_inches='tight')
