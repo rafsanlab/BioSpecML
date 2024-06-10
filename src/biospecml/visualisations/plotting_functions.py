@@ -427,9 +427,10 @@ def plot_spectra(sp, wn, skip_zeros=False, convert_wn_to_string=False,
         wn = [str(w) for w in wn]
     
     df = pd.DataFrame(sp.T, columns=wn)
-    
     if skip_zeros:
         df = df[df.sum(axis=1) != 0]
+    
+    last_idx = df.index[-1]
 
     plot_df_args_temp = {
         'show_plot': show_plot,
@@ -445,25 +446,29 @@ def plot_spectra(sp, wn, skip_zeros=False, convert_wn_to_string=False,
         plot_df_args.update(plot_df_args_temp)
 
     df_mean = df.mean().to_frame().rename(columns={0: 'Mean spectra'})
+
     if plt_type == 'mean':
         df = df_mean
+    
     elif plt_type == 'random':
-        if random_spectra > 0 and random_spectra <= df.shape[0]:
+        if random_spectra > 0 and random_spectra <= last_idx:
             df = df.sample(random_spectra).T
         else:
             raise ValueError('random_spectra must be greater than 0 and less than or equal to the number of available spectra.')
+    
     elif plt_type == 'index':
         if index_list is not None:
-            index_list = [idx for idx in index_list if idx < df.shape[0]]
+            index_list = [idx for idx in index_list if idx in df.index]
             if not index_list:
                 raise ValueError('None of the provided indices are valid.')
-            df = df.iloc[index_list].T
+            df = df.loc[index_list].T
         else:
             raise ValueError('index_list cannot be None when plt_type is "index".')
-    if plt_type != 'mean' and include_mean == True:
-        df = pd.concat([df,df_mean], axis=1)
     else:
         raise ValueError('Choose between <mean>, <random>, or <index>.')
+        
+    if plt_type != 'mean' and include_mean == True:
+        df = pd.concat([df,df_mean], axis=1)
     
     if fname is not None:
         dir_ = os.path.dirname(fname)
