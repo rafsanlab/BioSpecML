@@ -485,7 +485,7 @@ def plot_spectra(sp, wn, skip_zeros=False, convert_wn_to_string=False,
 
 def plot_chemimg_spectra(p, sp, wn, fname, cmap, plt_type, random_spectra, index_list,
                          legend_outside, saveplotdir, show_plot, save_plot,
-                         skip_zeros=False, plot_chemimg_status=True, plot_spectra_status=True, prefix=''
+                         skip_zeros=False, plot_chemimg_status=True, plot_spectra_status=True, prefix='',
                          plot_df_args=None,
                          **args):
     if plot_chemimg_status:
