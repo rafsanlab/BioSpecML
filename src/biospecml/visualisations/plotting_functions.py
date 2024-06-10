@@ -50,7 +50,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             linewidth:float=1.5, width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
             cmap:str=None, color:str|list=None, hide_spines:list=['top', 'right'],
             stacked:bool=False, fname:str=None,
-            legend_off:bool=False, legend_outside:bool=False, legend_loc:str='best', legend_col:int=1,
+            legend_off:bool=False, legend_outside:bool=False, legend_loc:str='best', legend_col:int=1, legend_fontsize:str|int='small',
             spines_width:float=1.5,  x_axis:str='', xlabel:str|dict=None, ylabel:str|dict=None, title=None,
             show_plot=True, annotation_dict:dict=None, annotation_args:list=None,
             yscale:float=None, xtick_rotate:float=None, line_styles:list=None,
@@ -185,7 +185,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
         if legend_outside!=False:
             ax.legend(loc=legend_loc, bbox_to_anchor=(1, 1), ncol=legend_col)
         else:
-            ax.legend(loc=legend_loc, ncol=legend_col)
+            ax.legend(loc=legend_loc, ncol=legend_col, fontsize=legend_fontsize)
 
     # grids arguments
     if set_grid is not False:
@@ -485,7 +485,8 @@ def plot_spectra(sp, wn, skip_zeros=False, convert_wn_to_string=False,
 
 def plot_chemimg_spectra(p, sp, wn, fname, cmap, plt_type, random_spectra, index_list,
                          legend_outside, saveplotdir, show_plot, save_plot,
-                         skip_zeros=False, plot_chemimg_status=True, plot_spectra_status=True, prefix='',
+                         skip_zeros=False, plot_chemimg_status=True, plot_spectra_status=True, prefix=''
+                         plot_df_args=None,
                          **args):
     if plot_chemimg_status:
         plot_chemimg(p, wn, show_plot=show_plot, cmap=cmap,
@@ -498,4 +499,4 @@ def plot_chemimg_spectra(p, sp, wn, fname, cmap, plt_type, random_spectra, index
                     skip_zeros=skip_zeros, index_list=index_list, plt_type=plt_type,
                     random_spectra=random_spectra, title={'label':f'{prefix}:{fname}'},
                     fname=os.path.join(saveplotdir, f'{fname}/{prefix}_spectra_random-mean.png') if save_plot else None,
-                    legend_off=False, legend_outside=legend_outside)
+                    legend_off=False, legend_outside=legend_outside, plot_df_args=plot_df_args)
