@@ -183,7 +183,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
         ax.legend().remove() 
     else:
         if legend_outside!=False:
-            ax.legend(loc=legend_loc, bbox_to_anchor=(1, 1), ncol=legend_col)
+            ax.legend(loc=legend_loc, ncol=legend_col, fontsize=legend_fontsize,  bbox_to_anchor=(1, 1))
         else:
             ax.legend(loc=legend_loc, ncol=legend_col, fontsize=legend_fontsize)
 
