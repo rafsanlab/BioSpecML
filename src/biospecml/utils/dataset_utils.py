@@ -174,7 +174,7 @@ def create_tabular_bags(
         for bag in bags:
             counter += 1
             counter_idx += 1
-            bag[bags_id_col] = str(bag[label_col])+f'{bags_id_connector}{counter}' # unique bags id
+            bag[bags_id_col] = str(bag[label_col].unique()[0])+f'{bags_id_connector}{counter}' # unique bags id
             bag[bags_idx_col] = counter_idx
         bags_list.extend(bags) # compile all bags
     bags_df = pd.concat(bags_list) # turn all bags to single df
