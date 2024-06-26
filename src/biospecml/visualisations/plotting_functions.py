@@ -46,7 +46,8 @@ def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
 
 
 def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None, groupby=None,
-            drop_rows:list=None, plot_cols:list=None, plt_args:dict={}, set_grid:bool|dict=True,
+            drop_rows:list=None, plot_cols:list=None, plt_args:dict=None, set_grid:bool|dict=True,
+            shade_df=None,
             linewidth:float=1.5, width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
             cmap:str=None, color:str|list=None, hide_spines:list=['top', 'right'],
             stacked:bool=False, fname:str=None,
@@ -69,6 +70,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
         - i.e: 'line', 'bar', 'barh', 'hist', 'box', 'kde', 'density', 'area', 'pie', 'scatter', 'hexbin'
     - x_axis (str) : name of the column to be x-axis
     - ylim (tup) = min and max of y-axis, i.e; (0,1)
+    - shade_df (pd.DataFrame) : data in df to be plotted as shaded region, must have the same column name with df
     - set_grid = {'color'='black', 'linewidth'=0.2}
     - xlabel, ylabel (str|dict) : labels for axes,
         - can also pass plt's **args via dict
@@ -89,6 +91,10 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     """
 
     # ----- checking ------
+
+    # create plt_args
+    if plt_args == None:
+        plt_args = {}
 
     # check total rows to plot
     if check_data:
@@ -136,7 +142,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     elif cmap!=None:
         plt_args.update({'cmap':cmap}) # set colour using cmap
         # plt_args = {'cmap':cmap} # set colour using cmap
-
+    
     # make subgroups for plotting
     if groupby!=None:
         df = df.groupby(groupby)
@@ -152,6 +158,13 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
             ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, **plt_args, x=x_axis)
         else:
             ax = df.plot(kind=plot_mode, stacked=stacked, figsize=figsize, **plt_args)
+
+    # ---- apply shade region -----
+    
+    if shade_df is not None:
+        colors = [line.get_color() for line in ax.get_lines()]
+        for i, col in enumerate(df.columns):
+            ax.fill_between(df.index, df[col]-shade_df[col], df[col]+shade_df[col], alpha=0.2, color=colors[i])
 
     # ---- annotate plot -----
 
