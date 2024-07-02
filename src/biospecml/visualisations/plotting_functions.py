@@ -47,7 +47,7 @@ def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
 
 def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None, groupby=None,
             drop_rows:list=None, plot_cols:list=None, plt_args:dict=None, set_grid:bool|dict=True,
-            shade_df=None,
+            shade_df=None, shade_alpha:float=0.1,
             linewidth:float=1.5, width:float=0.7, figsize:tuple=(7, 4), ylim:tuple=None,
             cmap:str=None, color:str|list=None, hide_spines:list=['top', 'right'],
             stacked:bool=False, fname:str=None,
@@ -164,7 +164,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
     if shade_df is not None:
         colors = [line.get_color() for line in ax.get_lines()]
         for i, col in enumerate(df.columns):
-            ax.fill_between(df.index, df[col]-shade_df[col], df[col]+shade_df[col], alpha=0.2, color=colors[i])
+            ax.fill_between(df.index, df[col]-shade_df[col], df[col]+shade_df[col], alpha=shade_alpha, color=colors[i])
 
     # ---- annotate plot -----
 
