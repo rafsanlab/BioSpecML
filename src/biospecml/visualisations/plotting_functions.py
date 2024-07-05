@@ -2,9 +2,13 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import matplotlib.image as mpimg
 from matplotlib.colors import LinearSegmentedColormap
+from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
+import numpy as np
+import seaborn as sns
 import os
 from ..processings.cheimg_projections import projection_area, projection_std
+
 
 def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
     """
@@ -512,3 +516,53 @@ def plot_chemimg_spectra(p, sp, wn, fname, cmap, plt_type, random_spectra, index
                     random_spectra=random_spectra, title={'label':f'{prefix}:{fname}'},
                     fname=os.path.join(saveplotdir, f'{fname}/{prefix}_spectra_random-mean.png') if save_plot else None,
                     legend_off=False, legend_outside=legend_outside, plot_df_args=plot_df_args)
+
+
+def plot_3dwaterfall(df:pd.DataFrame, convert_int:bool=True, 
+                     figsize:tuple=(9,8), cmap:str='Reds',
+                     invert_cmap:bool=False, box_aspect:list=[1,2,1],
+                     elev:int=25, azim:int=0, labelsdict:tuple=(None,None,None),
+                     title:str=None, legend_args:dict={'bbox_to_anchor':(1.1, 0.75), 'loc':'best'},
+                     fname=None, show_plot:bool=True):
+
+    """ - column and index must be a number or numerical values.
+        - column will be the x-axis (depth)
+        - index will be the y-axis (length)
+        - values wil be the z-axis (height)
+        Args:
+            - box_aspect(list): aspect ratio for x, y, z
+            - elev(int) : elevation view of the 3d plot
+            - azim(int) : azimuth view of the 3d plot
+            - labelsdict(tuple) : labels for each x, y, z
+    """
+    num_samples = df.shape[1] # columns
+    if convert_int:
+        df.columns = [int(i) for i in df.columns.to_list()]
+        df.index = [int(i) for i in df.index.to_list()]
+    # X is the columns, Y is the index
+    X, Y = np.meshgrid(df.columns.to_list(), df.index.to_list())
+    Z = df.values
+
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111, projection='3d')
+    
+    palette = sns.color_palette(cmap, num_samples)[::-1]
+    if invert_cmap:
+        palette = palette[::-1]
+
+    for i in range(df.shape[1]):
+        ax.plot(X[:, i],Y[:, i],Z[:, i], label=df.columns[i], color=palette[i])
+
+    ax.set_box_aspect(box_aspect)
+    ax.view_init(elev=elev, azim=azim)
+    xlabel, ylabel, zlabel = labelsdict
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_zlabel(zlabel)
+    ax.set_title(title)
+    plt.legend(**legend_args)
+    plt.tight_layout()
+    if fname is not None:
+        plt.savefig(fname, bbox_inches='tight')
+    if show_plot:
+        plt.show()
