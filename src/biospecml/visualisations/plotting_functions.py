@@ -278,7 +278,7 @@ def plot_images_from_folder(
     Plot images from a folder in a single figure.
 
     Args:
-    - folder_path (str): Path to the folder containing images.
+    - folder_path (str) or a (list) to paths: Path to the folder containing images.
     - rows (int): Number of rows in the subplot grid.
     - cols (int): Number of columns in the subplot grid.
     - figsize (tuple): Figure size (width, height) in inches.
@@ -287,7 +287,10 @@ def plot_images_from_folder(
     # ----- get the images -----
 
     # image_files = [f for f in os.listdir(folder_path) if f.endswith(('.png', '.jpg', '.jpeg'))]
-    image_files = [f for f in os.listdir(folder_path) if f.endswith((img_format))]
+    if not isinstance(folder_path, list):
+        image_files = [f for f in os.listdir(folder_path) if f.endswith((img_format))]
+    else:
+        image_files = folder_path
     image_files.sort()
 
     # ----- plot each images -----
@@ -296,28 +299,81 @@ def plot_images_from_folder(
     axes = axes.flatten()
     for i, ax in enumerate(axes):
         if i < len(image_files):
-            img_path = os.path.join(folder_path, image_files[i])
+            if not isinstance(folder_path, list):
+                img_path = os.path.join(folder_path, image_files[i])
+                # title = os.path.basename(image_files[i])
+            else:
+                img_path = image_files[i]
+                # title = image_files[i]
             img = mpimg.imread(img_path)
             if cmap_reverse==False:
                 ax.imshow(img, cmap=plt.colormaps.get_cmap(cmap))
             elif cmap_reverse==True:
                 ax.imshow(img, cmap=plt.colormaps.get_cmap(cmap).reversed())
-            ax.set_title(image_files[i], fontsize=title_size)
+            ax.set_title(os.path.basename(image_files[i]), fontsize=title_size)
             ax.axis('off')
         else:
             ax.axis('off')
     plt.tight_layout()
 
     # ----- other params -----
-
-    if show_plot==True:
-        plt.show()
-
     if fname!=None:
         plt.savefig(fname, dpi=save_dpi, bbox_inches='tight')
+    if show_plot==True:
+        plt.show()
     
     plt.close(fig)
     plt.clf() 
+
+# def plot_images_from_folder(
+#     folder_path, rows:int=1, cols:int=1, img_format:str='.png', figsize:tuple=(10, 10),
+#     title_size:int=10, cmap:str='binary', cmap_reverse:bool=False, fname:str=None,
+#     save_dpi:int=200, show_plot:bool=True
+#     ):
+#     """
+#     Plot images from a folder in a single figure.
+
+#     Args:
+#     - folder_path (str): Path to the folder containing images.
+#     - rows (int): Number of rows in the subplot grid.
+#     - cols (int): Number of columns in the subplot grid.
+#     - figsize (tuple): Figure size (width, height) in inches.
+#     """
+
+#     # ----- get the images -----
+
+#     # image_files = [f for f in os.listdir(folder_path) if f.endswith(('.png', '.jpg', '.jpeg'))]
+#     image_files = [f for f in os.listdir(folder_path) if f.endswith((img_format))]
+#     image_files.sort()
+
+#     # ----- plot each images -----
+
+#     fig, axes = plt.subplots(rows, cols, figsize=figsize)
+#     axes = axes.flatten()
+#     for i, ax in enumerate(axes):
+#         if i < len(image_files):
+#             img_path = os.path.join(folder_path, image_files[i])
+#             img = mpimg.imread(img_path)
+#             if cmap_reverse==False:
+#                 ax.imshow(img, cmap=plt.colormaps.get_cmap(cmap))
+#             elif cmap_reverse==True:
+#                 ax.imshow(img, cmap=plt.colormaps.get_cmap(cmap).reversed())
+#             ax.set_title(image_files[i], fontsize=title_size)
+#             ax.axis('off')
+#         else:
+#             ax.axis('off')
+#     plt.tight_layout()
+
+#     # ----- other params -----
+
+#     if show_plot==True:
+#         plt.show()
+
+#     if fname!=None:
+#         plt.savefig(fname, dpi=save_dpi, bbox_inches='tight')
+    
+#     plt.close(fig)
+#     plt.clf() 
 
 
 def rows_to_img(rows, label_col:str, w=28, h=28, cmap='viridis', drop_col=None, fname=None):
