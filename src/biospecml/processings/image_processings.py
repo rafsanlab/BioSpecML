@@ -48,10 +48,12 @@ def img_thres_otsu(img, blur_kernel:tuple=(3,3), tval:int=0, maxval:int=255):
         img = img
     else:
         raise Exception('*img input has invalid shape.')
-  
+
     # img -> blur -> Otsu
-    img = cv.GaussianBlur(img, blur_kernel, 0)
+    if blur_kernel is not None:
+        img = cv.GaussianBlur(img, blur_kernel, 0)
     thresh = cv.threshold(img, tval, maxval, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)[1]
+    # thresh = cv.threshold(img, tval, maxval, cv.THRESH_OTSU)[1]
 
     return thresh
 
