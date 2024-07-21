@@ -557,6 +557,8 @@ def plot_spectra(sp, wn, skip_zeros=False, convert_wn_to_string=False,
 
 def plot_chemimg_spectra(p, sp, wn, fname, cmap, plt_type, random_spectra, index_list,
                          legend_outside, saveplotdir, show_plot, save_plot,
+                         xlabel={'xlabel':'Wavenumber ($cm^{-1}$)', 'fontsize':10}, 
+                         ylabel={'ylabel':'Absorbance (a.u)', 'fontsize':10},
                          skip_zeros=False, plot_chemimg_status=True, plot_spectra_status=True, prefix='',
                          plot_df_args=None,
                          **args):
@@ -569,7 +571,10 @@ def plot_chemimg_spectra(p, sp, wn, fname, cmap, plt_type, random_spectra, index
     if plot_spectra_status:
         plot_spectra(sp, wn, show_plot=show_plot, cmap=cmap,
                     skip_zeros=skip_zeros, index_list=index_list, plt_type=plt_type,
-                    random_spectra=random_spectra, title={'label':f'{prefix}:{fname}'},
+                    random_spectra=random_spectra,
+                    title={'label':f'{prefix}:{fname}'},
+                    xlabel=xlabel, 
+                    ylabel=ylabel, 
                     fname=os.path.join(saveplotdir, f'{fname}/{prefix}_spectra_random-mean.png') if save_plot else None,
                     legend_off=False, legend_outside=legend_outside, plot_df_args=plot_df_args)
 
