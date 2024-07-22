@@ -272,7 +272,7 @@ def plot_df(df, check_data:bool=True, plot_mode:str='line', drop_cols:list=None,
 def plot_images_from_folder(
     folder_path, rows:int=1, cols:int=1, img_format:str='.png', figsize:tuple=(10, 10),
     title_size:int=10, cmap:str='binary', cmap_reverse:bool=False, fname:str=None,
-    save_dpi:int=200, show_plot:bool=True
+    save_dpi:int=200, show_plot:bool=True, sort_list:bool=True,
     ):
     """
     Plot images from a folder in a single figure.
@@ -291,7 +291,8 @@ def plot_images_from_folder(
         image_files = [f for f in os.listdir(folder_path) if f.endswith((img_format))]
     else:
         image_files = folder_path
-    image_files.sort()
+    if sort_list:
+        image_files.sort()
 
     # ----- plot each images -----
 
