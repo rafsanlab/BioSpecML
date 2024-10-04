@@ -2,7 +2,7 @@
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
-
+from PIL import Image
 
 def img_inverse(img:np.ndarray, point:tuple=(0,0), background:int=0):
     """
@@ -176,3 +176,67 @@ def apply_thresholding(img, blur_kernel=(3,3), rm_debris=True, debris_n=0.01,
     if invert_output:
         thresh = cv.bitwise_not(thresh)
     return thresh
+
+
+def extract_patches(image:Image, patch_size:tuple, stride:int):
+    """
+    Extracts patches of a given size from an image with a specified stride.
+
+    Parameters:
+    - image (PIL.Image): The input image.
+    - patch_size (tuple): The (width, height) of each patch.
+    - stride (int): The stride to move across the image.
+
+    Returns:
+    - List of patches (PIL.Image).
+
+    Raises:
+    - ValueError: If the image size does not allow for perfect patch division.
+    """
+
+    img_width, img_height = image.size
+    patch_width, patch_height = patch_size
+
+    # # Check if patches fit perfectly within the image
+    # if (img_width - patch_width) % stride != 0 or (img_height - patch_height) % stride != 0:
+    #     raise ValueError("The patches size and stride do not fit perfectly into the image dimensions.")
+
+    patches, idx = [], []
+    i = 0
+    # Loop to extract patches
+    for top in range(0, img_height - patch_height + 1, stride):
+        for left in range(0, img_width - patch_width + 1, stride):
+            box = (left, top, left + patch_width, top + patch_height)
+            patch = image.crop(box)  # Crop the patch from the image
+            patches.append(patch)
+            idx.append(i)
+            i += 1
+
+    return patches, idx
+
+
+def center_crop_to_size(image, preferred_size:tuple):
+    """
+    Center crop an image to the prefrred size.
+        - image: must be a PIL.Image object.
+
+    """
+
+    if not isinstance(image, Image.Image):
+        raise TypeError("The input image must be a PIL Image object.")
+
+    img_width, img_height = image.size
+    crop_width, crop_height = preferred_size
+
+    # Ensure the preferred size does not exceed the image size
+    crop_width = min(crop_width, img_width)
+    crop_height = min(crop_height, img_height)
+
+    # Calculate the cropping box
+    left = (img_width - crop_width) // 2
+    top = (img_height - crop_height) // 2
+    right = (img_width + crop_width) // 2
+    bottom = (img_height + crop_height) // 2
+
+    # Perform the crop
+    return image.crop((left, top, right, bottom))

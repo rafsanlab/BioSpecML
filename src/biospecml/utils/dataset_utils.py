@@ -2,7 +2,9 @@ from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
 import numpy as np
 import pandas as pd
-
+import os
+from PIL import Image
+from tqdm import tqdm
 
 def paths_splitter(df_paths, path_col, label_col, test_size:float=0.2,
                    split_method:str='random', stratify_col=None, random_state:int=42,
@@ -179,3 +181,34 @@ def create_tabular_bags(
         bags_list.extend(bags) # compile all bags
     bags_df = pd.concat(bags_list) # turn all bags to single df
     return bags_df
+
+
+def calculate_mean_std_imgs(image_folder, normalise_to_ones_zeros:bool=False):
+
+    means, stds = [], []
+
+    # Iterate through the image files in the folder
+    for img_name in tqdm(os.listdir(image_folder)):
+
+        if img_name.startswith('.'):  # Skip hidden files
+            continue
+        img_path = os.path.join(image_folder, img_name)
+
+        # Open the image and convert it to NumPy array
+        img = Image.open(img_path)
+        if normalise_to_ones_zeros:
+            img = np.array(img) / 255.0  # Normalize to [0, 1] range
+
+        # Calculate the mean and std across the height and width dimensions (axis=(0,1))
+        # This computes mean/std for each channel (RGB)
+        mean = np.mean(img, axis=(0, 1))
+        std = np.std(img, axis=(0, 1))
+
+        means.append(mean)
+        stds.append(std)
+
+    # Compute overall mean and std by averaging over all images
+    mean = np.mean(means, axis=0)
+    std = np.mean(stds, axis=0)
+
+    return mean, std

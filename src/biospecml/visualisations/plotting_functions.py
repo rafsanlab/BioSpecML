@@ -8,7 +8,7 @@ import numpy as np
 import seaborn as sns
 import os
 from ..processings.cheimg_projections import projection_area, projection_std
-
+import math
 
 def plt_annotate_dict(ax, dict:dict, idx:list, params:list=None):
     """
@@ -628,3 +628,40 @@ def plot_3dwaterfall(df:pd.DataFrame, convert_int:bool=True,
         plt.savefig(fname, bbox_inches='tight')
     if show_plot:
         plt.show()
+
+
+def plot_images(imgs:list, show_plot:bool=True, fname=None, save_dpi:int=100):
+    """
+    Plots a list of images in a grid format.
+
+    Parameters:
+    - imgs (list of PIL.Image or np.numpy): A list of imgs to plot.
+    """
+
+    num_imgs = len(imgs)
+
+    # Calculate the number of rows and columns (make the grid as square as possible)
+    cols = math.ceil(math.sqrt(num_imgs))
+    rows = math.ceil(num_imgs / cols)
+
+    # Create a matplotlib figure
+    fig, axes = plt.subplots(rows, cols, figsize=(cols * 2, rows * 2))
+
+    # If we only have one row or one column, axes will not be a 2D array
+    axes = axes.flatten() if isinstance(axes, np.ndarray) else [axes]
+
+    for i, img in enumerate(imgs):
+        axes[i].imshow(img)
+        axes[i].axis('off')  # Hide the axis
+
+    # Hide any empty subplots (if the number of img doesn't fill the grid)
+    for j in range(i + 1, rows * cols):
+        axes[j].axis('off')
+
+    plt.tight_layout()
+
+    if show_plot:
+        plt.show()
+    if fname is not None:
+        plt.savefig(fname, dpi=save_dpi, bbox_inches='tight')
+    plt.close()
