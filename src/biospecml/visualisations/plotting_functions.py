@@ -581,9 +581,10 @@ def plot_chemimg_spectra(p, sp, wn, fname, cmap, plt_type, random_spectra, index
 
 
 def plot_3dwaterfall(df:pd.DataFrame, convert_int:bool=True, 
-                     figsize:tuple=(9,8), cmap:str='Reds',
+                     figsize:tuple=(9,8), cmap:str|list='Reds',
                      invert_cmap:bool=False, box_aspect:list=[1,2,1],
-                     elev:int=25, azim:int=0, labelsdict:tuple=(None,None,None),
+                     elev:float=25, azim:float=0, roll:float=0,
+                     labelsdict:tuple=(None,None,None),
                      title:str=None, legend_args:dict={'bbox_to_anchor':(1.1, 0.75), 'loc':'best'},
                      fname=None, show_plot:bool=True):
 
@@ -608,7 +609,11 @@ def plot_3dwaterfall(df:pd.DataFrame, convert_int:bool=True,
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection='3d')
     
-    palette = sns.color_palette(cmap, num_samples)[::-1]
+    if isinstance(cmap, str):
+        palette = sns.color_palette(cmap, num_samples)[::-1]
+    elif isinstance(cmap, list):
+        palette = cmap
+
     if invert_cmap:
         palette = palette[::-1]
 
@@ -616,7 +621,7 @@ def plot_3dwaterfall(df:pd.DataFrame, convert_int:bool=True,
         ax.plot(X[:, i],Y[:, i],Z[:, i], label=df.columns[i], color=palette[i])
 
     ax.set_box_aspect(box_aspect)
-    ax.view_init(elev=elev, azim=azim)
+    ax.view_init(elev=elev, azim=azim, roll=roll)
     xlabel, ylabel, zlabel = labelsdict
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
@@ -628,7 +633,6 @@ def plot_3dwaterfall(df:pd.DataFrame, convert_int:bool=True,
         plt.savefig(fname, bbox_inches='tight')
     if show_plot:
         plt.show()
-
 
 def plot_images(imgs:list, show_plot:bool=True, fname=None, save_dpi:int=100):
     """
