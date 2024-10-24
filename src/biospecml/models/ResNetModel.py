@@ -3,7 +3,7 @@ import torch.nn as nn
 import torchvision.models as models
 
 class ResNetModel(nn.Module):
-    def __init__(self, num_classes, hidden_units=128, resnet=18):
+    def __init__(self, num_classes, hidden_units=None, resnet=18):
         super(ResNetModel, self).__init__()
         
         # Select the ResNet model
@@ -25,11 +25,14 @@ class ResNetModel(nn.Module):
         self.resnet.fc = nn.Identity()  # Replace the fc layer with Identity to keep the features
 
         # Fully connected layers
-        self.fc = nn.Sequential(
-            nn.Linear(num_features, hidden_units),  # First FC layer
-            nn.ReLU(),
-            nn.Linear(hidden_units, num_classes)  # Output layer for num_classes
-        )
+        if hidden_units is not None:
+            self.fc = nn.Sequential(
+                nn.Linear(num_features, hidden_units),  # First FC layer
+                nn.ReLU(),
+                nn.Linear(hidden_units, num_classes)  # Output layer for num_classes
+            )
+        else:
+            self.fc = nn.Linear(num_features, num_classes)
 
     def forward(self, x):
         x = self.resnet(x)
