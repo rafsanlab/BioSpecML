@@ -7,7 +7,8 @@ import os
 
 def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer=None,
                   savedir=None, f1_score_average='macro', labels=None, validation_mode=False,
-                  use_instance_labels=True, use_bag_labels=False, verbose=True,
+                  use_instance_labels=True, use_bag_labels=False, 
+                  pooling_method='mean', verbose=True,
                   one_epoch_mode=False, return_predictions=False):
     """
     Accept bag data (Bags, N-instances, Features) and do prediction based on 
@@ -74,14 +75,20 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                     outputs = model(inputs)
                     if use_bag_labels:
                         outputs = outputs.view(batch_num, instance_num, -1) # reconstruct data
-                        outputs = torch.mean(outputs, dim=1) #-> (batch_num, -1)
+                        if pooling_method=='mean':
+                            outputs = torch.mean(outputs, dim=1) #-> (batch_num, -1)
+                        elif pooling_method=='max':
+                            outputs = torch.max(outputs, dim=1)[0]  # (batch_num, -1)
                     loss = criterion(outputs, targets)
             else:
                 model.train()
                 outputs = model(inputs)
                 if use_bag_labels:
                     outputs = outputs.view(batch_num, instance_num, -1) # reconstruct data
-                    outputs = torch.mean(outputs, dim=1) #-> (batch_num, -1)
+                    if pooling_method=='mean':
+                        outputs = torch.mean(outputs, dim=1) #-> (batch_num, -1)
+                    elif pooling_method=='max':
+                        outputs = torch.max(outputs, dim=1)[0]  # (batch_num, -1)
                 loss = criterion(outputs, targets)
                 optimizer.zero_grad()
                 loss.backward()
@@ -148,7 +155,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
 def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                     train_loader, test_loader=None, trained_num_epochs:int=None,
                     verbose:bool=True, f1_average:str='macro', labels=None, 
-                    f1_average_test:str='macro',
+                    f1_average_test:str='macro', pooling_method='mean',
                     savedir:str=None, epoch_save_checkpoints:list=[],
                     save_model:bool=True,
                     ):
@@ -195,6 +202,7 @@ def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                 validation_mode = False,
                 use_instance_labels = False,
                 use_bag_labels = True,
+                pooling_method = pooling_method,
                 one_epoch_mode = True,
                 verbose = False,
                 )
@@ -214,6 +222,7 @@ def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                 validation_mode = True,
                 use_instance_labels = False,
                 use_bag_labels = True,
+                pooling_method = pooling_method,
                 one_epoch_mode = True,
                 verbose = False,
                 )
