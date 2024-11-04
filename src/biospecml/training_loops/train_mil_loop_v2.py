@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 import json
 import os
+import numpy as np
 
 def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer=None,
                   savedir=None, f1_score_average='macro', labels=None, validation_mode=False,
@@ -107,7 +108,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
             # ----- get metrics -----
 
             batch_accuracy = accuracy_score(targets, bag_predictions)
-            batch_f1 = f1_score(targets, bag_predictions, average=f1_score_average, labels=labels)
+            batch_f1 = f1_score(targets, bag_predictions, average=f1_score_average, labels=labels, zero_division=np.nan)
 
             epoch_loss += loss.item()
             epoch_accuracy += batch_accuracy
