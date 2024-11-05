@@ -7,6 +7,7 @@ import os
 import numpy as np
 
 def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer=None,
+                  scheduler=None,
                   savedir=None, f1_score_average='macro', labels=None, validation_mode=False,
                   use_instance_labels=True, use_bag_labels=False, 
                   pooling_method='mean', verbose=True,
@@ -94,6 +95,8 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+                if scheduler is not None:
+                    scheduler.step(loss)
 
             # ----- get predictions -----
 
@@ -155,6 +158,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
 
 def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                     train_loader, test_loader=None, trained_num_epochs:int=None,
+                    scheduler=None,
                     verbose:bool=True, f1_average:str='macro', labels=None, 
                     f1_average_test:str='macro', pooling_method='mean',
                     savedir:str=None, epoch_save_checkpoints:list=[],
@@ -197,6 +201,7 @@ def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                 num_epochs = num_epochs,
                 criterion = criterion,
                 optimizer = optimizer,
+                scheduler = scheduler,
                 savedir = None,
                 f1_score_average = f1_average,
                 labels = labels,
