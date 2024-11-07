@@ -87,7 +87,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                 with torch.no_grad():
                     if micro_batch_patches is not None:
                         for start in range(0, instance_num, micro_batch_patches):
-                            micro_batch_data = inputs[:, start:start + micro_batch_patches, :, :, :]  # Shape: [2, 50, 3, 224, 224]
+                            micro_batch_data = inputs[start:start + micro_batch_patches, :, :, :]  # Shape: [2, 50, 3, 224, 224]
                             # Reshape to combine the batch and patch dimensions for model input
                             # Shape: [2 * 50, 3, 224, 224]
                             # micro_batch_data = micro_batch_data.view(-1, 3, 224, 224)
@@ -110,7 +110,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                 optimizer.zero_grad()
                 if micro_batch_patches is not None:
                     for start in range(0, instance_num, micro_batch_patches):
-                        micro_batch_data = inputs[:, start:start + micro_batch_patches, :, :, :]  # Shape: [2, 50, 3, 224, 224]
+                        micro_batch_data = inputs[start:start + micro_batch_patches, :, :, :]  # Shape: [2, 50, 3, 224, 224]
                         # Reshape to combine the batch and patch dimensions for model input
                         # Shape: [2 * 50, 3, 224, 224]
                         # micro_batch_data = micro_batch_data.view(-1, 3, 224, 224)
