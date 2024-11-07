@@ -1,4 +1,5 @@
 from sklearn.metrics import f1_score, accuracy_score
+from ..utils.memory_utils import print_gpu_memory, print_cpu_memory
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -10,7 +11,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                   scheduler=None,
                   savedir=None, f1_score_average='macro', labels=None, validation_mode=False,
                   use_instance_labels=True, use_bag_labels=False, 
-                  pooling_method='mean', verbose=True,
+                  pooling_method='mean', verbose=True, memory_verbose:bool=False,
                   one_epoch_mode=False, return_predictions=False):
     """
     Accept bag data (Bags, N-instances, Features) and do prediction based on 
@@ -20,6 +21,12 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
     - return_predictions(bool): return prediction by a single epoch, use with one_epoch_mode
     
     """
+    
+    model.to(device)
+    if memory_verbose:
+        print('Memory status after model send to device:')
+        print_gpu_memory()
+        print_cpu_memory()
 
     metrics = {'epochs':[], 'loss':[], 'accuracy':[],'f1':[]}
 
@@ -69,7 +76,10 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
 
             # ----- forward/backward pass -----
             inputs, targets = inputs.to(device), targets.to(device)
-            model.to(device)
+            if memory_verbose:
+                print('Memory status after data send to device:')
+                print_gpu_memory()
+                print_cpu_memory()
 
             if validation_mode:
                 model.eval()
@@ -159,7 +169,9 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
 def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                     train_loader, test_loader=None, trained_num_epochs:int=None,
                     scheduler=None,
-                    verbose:bool=True, f1_average:str='macro', labels=None, 
+                    verbose:bool=True, 
+                    memory_verbose:bool=False,
+                    f1_average:str='macro', labels=None, 
                     f1_average_test:str='macro', pooling_method='mean',
                     savedir:str=None, epoch_save_checkpoints:list=[],
                     save_model:bool=True,
@@ -211,6 +223,7 @@ def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                 pooling_method = pooling_method,
                 one_epoch_mode = True,
                 verbose = False,
+                memory_verbose = memory_verbose,
                 )
             container_metrics.append(("train", train_metrics))
 
@@ -231,6 +244,7 @@ def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                 pooling_method = pooling_method,
                 one_epoch_mode = True,
                 verbose = False,
+                memory_verbose = memory_verbose,
                 )
             container_metrics.append(("val.", test_metrics))
         
