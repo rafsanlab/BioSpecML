@@ -95,6 +95,10 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
             else:
                 model.train()
                 outputs = model(inputs)
+                if memory_verbose:
+                    print('Memory status after model taking input:')
+                    print_gpu_memory()
+                    print_cpu_memory()
                 if use_bag_labels:
                     outputs = outputs.view(batch_num, instance_num, -1) # reconstruct data
                     if pooling_method=='mean':
@@ -102,8 +106,16 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                     elif pooling_method=='max':
                         outputs = torch.max(outputs, dim=1)[0]  # (batch_num, -1)
                 loss = criterion(outputs, targets)
+                if memory_verbose:
+                    print('Memory status after criterion:')
+                    print_gpu_memory()
+                    print_cpu_memory()
                 optimizer.zero_grad()
                 loss.backward()
+                if memory_verbose:
+                    print('Memory status after backward:')
+                    print_gpu_memory()
+                    print_cpu_memory()
                 optimizer.step()
                 if scheduler is not None:
                     scheduler.step(loss)
