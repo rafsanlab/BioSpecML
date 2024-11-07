@@ -91,7 +91,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                             # Reshape to combine the batch and patch dimensions for model input
                             # Shape: [2 * 50, 3, 224, 224]
                             # micro_batch_data = micro_batch_data.view(-1, 3, 224, 224)
-                            micro_batch_data = micro_batch_data.view(-1, *micro_batch_data.shape[1:])
+                            micro_batch_data = micro_batch_data.view(-1, *micro_batch_data.shape[2:])
                             outputs = model(micro_batch_data)
                             outputs = outputs.view(batch_num, -1, *outputs.shape[1:])
                             loss = criterion(outputs, targets)
@@ -111,10 +111,12 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                 if micro_batch_patches is not None:
                     for start in range(0, instance_num, micro_batch_patches):
                         micro_batch_data = inputs[:, start:start + micro_batch_patches, :, :, :]  # Shape: [2, 50, 3, 224, 224]
+                        print(micro_batch_data.shape)
                         # Reshape to combine the batch and patch dimensions for model input
                         # Shape: [2 * 50, 3, 224, 224]
                         # micro_batch_data = micro_batch_data.view(-1, 3, 224, 224)
-                        micro_batch_data = micro_batch_data.view(-1, *micro_batch_data.shape[1:])
+                        micro_batch_data = micro_batch_data.view(-1, *micro_batch_data.shape[2:])
+                        print(micro_batch_data.shape)
                         outputs = model(micro_batch_data)
                         outputs = outputs.view(batch_num, -1, *outputs.shape[1:])
                         loss = criterion(outputs, targets)
