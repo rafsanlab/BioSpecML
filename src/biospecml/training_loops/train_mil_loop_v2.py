@@ -127,6 +127,10 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
             epoch_accuracy += batch_accuracy
             epoch_f1 += batch_f1
 
+            # Set inputs and targets to None to help with memory
+            torch.cuda.empty_cache()
+            inputs, targets = None, None
+
         # Calculate average metrics for the epoch
         epoch_loss /= loop_count # using <epoch_loss /= len(train_loader.dataset)> not good
         epoch_accuracy /= loop_count
