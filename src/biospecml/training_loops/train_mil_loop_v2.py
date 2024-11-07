@@ -9,6 +9,7 @@ import numpy as np
 
 def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer=None,
                   scheduler=None,
+                  micro_batch_patches:int=None,
                   savedir=None, f1_score_average='macro', labels=None, validation_mode=False,
                   use_instance_labels=True, use_bag_labels=False, 
                   pooling_method='mean', verbose=True, memory_verbose:bool=False,
@@ -84,6 +85,41 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
             if validation_mode:
                 model.eval()
                 with torch.no_grad():
+                    if micro_batch_patches is not None:
+                        for start in range(0, instance_num, micro_batch_patches):
+                            micro_batch_data = inputs[:, start:start + micro_batch_patches, :, :, :]  # Shape: [2, 50, 3, 224, 224]
+                            # Reshape to combine the batch and patch dimensions for model input
+                            # Shape: [2 * 50, 3, 224, 224]
+                            # micro_batch_data = micro_batch_data.view(-1, 3, 224, 224)
+                            micro_batch_data = micro_batch_data.view(-1, *micro_batch_data.shape[2:])
+                            outputs = model(micro_batch_data)
+                            outputs = outputs.view(batch_num, -1, *outputs.shape[1:])
+                            loss = criterion(outputs, targets)
+                            loss.backward()
+                    else:
+                        outputs = model(inputs)
+                        if use_bag_labels:
+                            outputs = outputs.view(batch_num, instance_num, -1) # reconstruct data
+                            if pooling_method=='mean':
+                                outputs = torch.mean(outputs, dim=1) #-> (batch_num, -1)
+                            elif pooling_method=='max':
+                                outputs = torch.max(outputs, dim=1)[0]  # (batch_num, -1)
+                        loss = criterion(outputs, targets)
+            else:
+                model.train()
+                optimizer.zero_grad()
+                if micro_batch_patches is not None:
+                    for start in range(0, instance_num, micro_batch_patches):
+                        micro_batch_data = inputs[:, start:start + micro_batch_patches, :, :, :]  # Shape: [2, 50, 3, 224, 224]
+                        # Reshape to combine the batch and patch dimensions for model input
+                        # Shape: [2 * 50, 3, 224, 224]
+                        # micro_batch_data = micro_batch_data.view(-1, 3, 224, 224)
+                        micro_batch_data = micro_batch_data.view(-1, *micro_batch_data.shape[2:])
+                        outputs = model(micro_batch_data)
+                        outputs = outputs.view(batch_num, -1, *outputs.shape[1:])
+                        loss = criterion(outputs, targets)
+                        loss.backward()
+                else:
                     outputs = model(inputs)
                     if use_bag_labels:
                         outputs = outputs.view(batch_num, instance_num, -1) # reconstruct data
@@ -92,30 +128,8 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
                         elif pooling_method=='max':
                             outputs = torch.max(outputs, dim=1)[0]  # (batch_num, -1)
                     loss = criterion(outputs, targets)
-            else:
-                model.train()
-                outputs = model(inputs)
-                if memory_verbose:
-                    print('Memory status after model taking input:')
-                    print_gpu_memory()
-                    print_cpu_memory()
-                if use_bag_labels:
-                    outputs = outputs.view(batch_num, instance_num, -1) # reconstruct data
-                    if pooling_method=='mean':
-                        outputs = torch.mean(outputs, dim=1) #-> (batch_num, -1)
-                    elif pooling_method=='max':
-                        outputs = torch.max(outputs, dim=1)[0]  # (batch_num, -1)
-                loss = criterion(outputs, targets)
-                if memory_verbose:
-                    print('Memory status after criterion:')
-                    print_gpu_memory()
-                    print_cpu_memory()
-                optimizer.zero_grad()
-                loss.backward()
-                if memory_verbose:
-                    print('Memory status after backward:')
-                    print_gpu_memory()
-                    print_cpu_memory()
+                    loss.backward()
+                
                 optimizer.step()
                 if scheduler is not None:
                     scheduler.step(loss)
@@ -184,7 +198,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
 
 def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                     train_loader, test_loader=None, trained_num_epochs:int=None,
-                    scheduler=None,
+                    scheduler=None, micro_batch_patches=None,
                     verbose:bool=True, 
                     memory_verbose:bool=False,
                     f1_average:str='macro', labels=None, 
@@ -230,6 +244,7 @@ def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                 criterion = criterion,
                 optimizer = optimizer,
                 scheduler = scheduler,
+                micro_batch_patches = micro_batch_patches,
                 savedir = None,
                 f1_score_average = f1_average,
                 labels = labels,
@@ -251,6 +266,7 @@ def train_mil_val_loop(model, device, num_epochs, criterion, optimizer,
                 num_epochs = num_epochs,
                 criterion = criterion,
                 optimizer = optimizer,
+                micro_batch_patches = micro_batch_patches,
                 savedir = None,
                 f1_score_average = f1_average_test,
                 labels = labels,
