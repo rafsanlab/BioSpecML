@@ -9,7 +9,7 @@ import numpy as np
 
 def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer=None,
                   scheduler=None,
-                  micro_batch_patches:int=None,
+                  micro_batch_patches:int = None,
                   savedir=None, f1_score_average='macro', labels=None, validation_mode=False,
                   use_instance_labels=True, use_bag_labels=False, 
                   pooling_method='mean', verbose=True, memory_verbose:bool=False,
@@ -30,7 +30,7 @@ def train_mil_model(model, data_loader, device, num_epochs, criterion, optimizer
         print_cpu_memory()
 
     metrics = {'epochs':[], 'loss':[], 'accuracy':[],'f1':[]}
-
+ 
     # if this function is in another running loop, set one_epoch_mode to True
     # so regardless any epoch number, will only run for one
     # but we save the given epoch for stats
