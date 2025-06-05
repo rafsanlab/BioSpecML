@@ -9,7 +9,7 @@ import numpy as np
 
 
 def calc_metric_prediction(
-    inputs, outputs, metrics_list=["accuracy", "f1"], f1_average="macro"
+    inputs, outputs, metrics_list=["accuracy", "f1"], f1_average="macro", f1_zero_division=1
 ):
     """
     Evaluate the performance of a model for classification tasks using various metrics.
@@ -17,8 +17,13 @@ def calc_metric_prediction(
     Args:
     - inputs (torch.Tensor): Original input labels (ground truth).
     - outputs (torch.Tensor): Predicted output labels.
-    - metric (str): Metric to compute. Options: 'accuracy', 'f1', 'all' (default).
-    - threshold (float): Threshold for binary classification (default: 0.5).
+    - metrics_list (list): List of metrics to compute. Options: 'accuracy', 'f1'.
+                           Default is ["accuracy", "f1"].
+    - f1_average (str): Averaging method for F1-score. See sklearn.metrics.f1_score for options.
+                        Default is "macro".
+    - f1_zero_division (int or float): Value to return when there is a zero division.
+                                       Can be 0 or 1. Default is 1, meaning an undefined
+                                       F-score (due to no true/predicted samples) will be 1.0.
 
     Returns:
     - result (dict): Computed metric value or a dictionary containing different evaluation metrics.
@@ -28,17 +33,19 @@ def calc_metric_prediction(
     if not isinstance(inputs, np.ndarray) or not isinstance(
         outputs, np.ndarray
     ):
-        raise Exception("Inputs/outputs must be numpy array for predictions.")
+        raise TypeError("Inputs/outputs must be torch.Tensor or numpy.ndarray for predictions.")
 
     for metric in metrics_list:
 
         if metric not in ["accuracy", "f1"]:
             raise ValueError(
-                f"Invalid metric. Choose from 'accuracy' or/and 'f1'."
+                f"Invalid metric: '{metric}'. Choose from 'accuracy' or 'f1'."
             )
 
         if metric == "f1":
-            f1 = f1_score(inputs, outputs, average=f1_average)
+            # For binary classification, you might want to specify pos_label if not 0 or 1
+            # and average='binary' or 'weighted'. 'macro' treats both classes equally.
+            f1 = f1_score(inputs, outputs, average=f1_average, zero_division=f1_zero_division)
             metrics["f1"] = f1
 
         if metric == "accuracy":
