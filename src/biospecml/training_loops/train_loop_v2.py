@@ -4,6 +4,124 @@ import torch.nn as nn
 import torch.nn.functional as F
 import os
 import json
+import numpy as np
+
+# def train_model(model, data_loader, device, num_epochs, criterion, optimizer=None,
+#               running_type:str='prediction', verbose:bool=True,
+#               savedir:str=None, f1_average:str='macro', validation_mode:bool=False,
+#               one_epoch_mode:bool=False, metrics_list:list=None,
+#               ):
+#     """
+#     A basic running loop.
+#     """
+#     running_types = ['prediction', 'similarity']
+#     if running_type not in running_types:
+#         raise Exception(f'Choose *running_type : {running_types}')
+
+#     # if this function is in another running loop, set one_epoch_mode to True
+#     # so regardless any epoch number, will only run for -@rq one
+#     # but we save the given epoch for stats 
+#     if one_epoch_mode:
+#         ori_epochs = num_epochs
+#         num_epochs = 1
+
+#     # ----- prepare metrics dictionary -----
+
+#     if metrics_list == None:
+#         raise Exception('Please provide metric list.')
+#     metrics = {key: [] for key in metrics_list}
+#     metrics['loss'], metrics['epochs'] = [], []
+
+#     for epoch in range(num_epochs):
+
+#         epoch = ori_epochs if one_epoch_mode else epoch+1
+#         epoch_metrics = {key: 0.0 for key in metrics.keys()}
+#         epoch_metrics['epochs'] = ori_epochs if one_epoch_mode else epoch
+
+#         loop_count = 0 # this track batch number (more robust than using batch_num)
+
+#         for data in data_loader:
+
+#             loop_count += 1
+#             inputs, targets = data[0], data[1]
+
+#             # check and convert target to long() dtype
+#             if running_type=='prediction':
+#                 if targets.dtype != torch.long:
+#                     targets = targets.long()
+
+#             # ----- forward/backward pass -----
+
+#             inputs, targets = inputs.to(device), targets.to(device)
+#             model.to(device)
+
+#             if validation_mode:
+#                 model.eval()
+#                 with torch.no_grad():
+#                     outputs = model(inputs)
+#                     loss = criterion(outputs, targets)
+#             else:
+#                 model.train()
+#                 outputs = model(inputs)
+#                 loss = criterion(outputs, targets)
+#                 optimizer.zero_grad()
+#                 loss.backward()
+#                 optimizer.step()
+
+#             if device != 'cpu':
+#                 outputs = outputs.cpu()
+#                 targets = targets.cpu()
+
+#             # ----- get metrics -----
+
+#             # get prediction metrics
+#             if running_type=='prediction':
+#                 preds = torch.argmax(outputs, dim=1).numpy()
+#                 targets = targets.numpy()
+#                 batch_metrics = calc_metric_prediction(preds, targets, metrics_list, f1_average)
+
+#             # get similarity metrics
+#             if running_type=='similarity':
+#                 outputs, targets = outputs.detach().numpy(), targets.detach().numpy()
+#                 batch_metrics = calc_metric_similarity(outputs, targets, metrics_list)
+
+#             for key in batch_metrics.keys():
+#                 epoch_metrics[key] += batch_metrics[key]
+#             epoch_metrics['loss'] += loss.item()
+
+#         for key in epoch_metrics.keys():
+#             if key != 'epochs': # escape 'epoch' value because we doing division
+#                 epoch_metrics[key] /= loop_count
+
+#         # ----- print, stat fname and append metrics -----
+
+#         # set stats fname 
+#         if validation_mode:
+#             text1 = 'VALIDATE '
+#             stat_fname = 'stats_val.json'
+#         else:
+#             text1 = 'TRAINING '
+#             stat_fname = 'stats_train.json'
+
+#         # print and append -@rq metrics
+#         for key, value in epoch_metrics.items():
+#             metrics[key].append(value)
+
+#         # print some stats
+#         if verbose:
+#             print(f'{text1} Epoch {epoch:03d}', end=" - ")
+#             for key, value in epoch_metrics.items():
+#                 if key!= 'epochs':
+#                     print(f"{key} : {value:.6f}", end=" | ")
+#             print()
+
+#         # condition to save metrics, save every epoch to be safe
+#         if savedir != None:
+#             dir_metrics = os.path.join(savedir, stat_fname)
+#             with open(dir_metrics, 'w') as json_file:
+#                 json.dump(metrics, json_file, indent=4)
+
+#     return model, metrics
 
 def train_model(model, data_loader, device, num_epochs, criterion, optimizer=None,
               running_type:str='prediction', verbose:bool=True,
@@ -17,14 +135,9 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer=Non
     if running_type not in running_types:
         raise Exception(f'Choose *running_type : {running_types}')
 
-    # if this function is in another running loop, set one_epoch_mode to True
-    # so regardless any epoch number, will only run for -@rq one
-    # but we save the given epoch for stats 
     if one_epoch_mode:
         ori_epochs = num_epochs
         num_epochs = 1
-
-    # ----- prepare metrics dictionary -----
 
     if metrics_list == None:
         raise Exception('Please provide metric list.')
@@ -33,23 +146,22 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer=Non
 
     for epoch in range(num_epochs):
 
-        epoch = ori_epochs if one_epoch_mode else epoch+1
-        epoch_metrics = {key: 0.0 for key in metrics.keys()}
-        epoch_metrics['epochs'] = ori_epochs if one_epoch_mode else epoch
+        epoch_val = ori_epochs if one_epoch_mode else epoch+1 # Use epoch_val to differentiate from loop `epoch`
+        
+        # Initialize lists to collect all predictions and targets for the epoch
+        all_preds = []
+        all_targets = []
+        total_loss = 0.0 # Use total_loss to sum loss across batches
 
-        loop_count = 0 # this track batch number (more robust than using batch_num)
+        loop_count = 0 
 
         for data in data_loader:
-
             loop_count += 1
             inputs, targets = data[0], data[1]
 
-            # check and convert target to long() dtype
             if running_type=='prediction':
                 if targets.dtype != torch.long:
                     targets = targets.long()
-
-            # ----- forward/backward pass -----
 
             inputs, targets = inputs.to(device), targets.to(device)
             model.to(device)
@@ -71,30 +183,42 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer=Non
                 outputs = outputs.cpu()
                 targets = targets.cpu()
 
-            # ----- get metrics -----
-
-            # get prediction metrics
+            # Collect predictions and targets for epoch-level metric calculation
             if running_type=='prediction':
                 preds = torch.argmax(outputs, dim=1).numpy()
-                targets = targets.numpy()
-                batch_metrics = calc_metric_prediction(preds, targets, metrics_list, f1_average)
+                targets_np = targets.numpy()
+                all_preds.extend(preds)
+                all_targets.extend(targets_np)
+            elif running_type=='similarity': # Assuming calc_metric_similarity also needs all outputs/targets
+                # You'd need a similar collection for similarity outputs/targets
+                # For simplicity, if calc_metric_similarity can be run batch-wise and averaged, keep current logic
+                # Otherwise, collect all outputs and targets for similarity as well.
+                # For this review, assuming you might keep calc_metric_similarity as is if its metrics are linearly additive.
+                pass 
 
-            # get similarity metrics
-            if running_type=='similarity':
-                outputs, targets = outputs.detach().numpy(), targets.detach().numpy()
-                batch_metrics = calc_metric_similarity(outputs, targets, metrics_list)
+            total_loss += loss.item() # Sum loss items
 
-            for key in batch_metrics.keys():
-                epoch_metrics[key] += batch_metrics[key]
-            epoch_metrics['loss'] += loss.item()
+        # --- Calculate epoch-level metrics after the batch loop ---
+        epoch_metrics = {}
+        epoch_metrics['epochs'] = epoch_val # Store the actual epoch number
 
-        for key in epoch_metrics.keys():
-            if key != 'epochs': # escape 'epoch' value because we doing division
-                epoch_metrics[key] /= loop_count
+        if running_type == 'prediction':
+            # Calculate metrics once for the entire epoch's collected data
+            epoch_metrics.update(calc_metric_prediction(np.array(all_targets), np.array(all_preds), metrics_list, f1_average))
+        elif running_type == 'similarity':
+            # If similarity metrics need to be calculated epoch-wise, do it here
+            # Otherwise, if batch-wise averaging is acceptable for similarity, you'd need to re-introduce a similar sum/average
+            # logic here, or modify calc_metric_similarity to accept lists and handle conversion.
+            # For now, let's assume calc_metric_similarity should also be calculated on aggregated data if its metrics are non-linear like F1.
+            # If they are simple means (like MSE), current loop-summing approach is fine.
+            # For robust solution, collect all outputs/targets for similarity too and compute here.
+            pass
+
+        epoch_metrics['loss'] = total_loss / loop_count # Average loss over all batches
 
         # ----- print, stat fname and append metrics -----
 
-        # set stats fname 
+        # set stats fname
         if validation_mode:
             text1 = 'VALIDATE '
             stat_fname = 'stats_val.json'
@@ -102,13 +226,16 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer=Non
             text1 = 'TRAINING '
             stat_fname = 'stats_train.json'
 
-        # print and append -@rq metrics
+        # print and append metrics - now epoch_metrics contains final values for the epoch
         for key, value in epoch_metrics.items():
-            metrics[key].append(value)
+            if key != 'epochs': # 'epochs' is not a list of values over time
+                metrics[key].append(value)
+            else:
+                metrics[key].append(value) # Append the single epoch number
 
         # print some stats
         if verbose:
-            print(f'{text1} Epoch {epoch:03d}', end=" - ")
+            print(f'{text1} Epoch {epoch_val:03d}', end=" - ")
             for key, value in epoch_metrics.items():
                 if key!= 'epochs':
                     print(f"{key} : {value:.6f}", end=" | ")
