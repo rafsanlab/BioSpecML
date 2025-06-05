@@ -9,7 +9,7 @@ import numpy as np
 
 
 def calc_metric_prediction(
-    inputs, outputs, metrics_list=["accuracy", "f1"], f1_average="macro", f1_zero_division=0
+    inputs, outputs, metrics_list=["accuracy", "f1"], f1_average="macro", f1_zero_division=1
 ):
     """
     Evaluate the performance of a model for classification tasks using various metrics.
