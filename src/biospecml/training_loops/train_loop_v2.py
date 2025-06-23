@@ -315,7 +315,9 @@ def train_val_loop(
     else:
         traindir = os.path.join(savedir, 'training')
     os.makedirs(traindir, exist_ok=True)
-    best_model_save_path = os.path.join(traindir, 'best_model.pth')
+    
+    # Define the path for the best model. It will be overwritten whenever a new best is found.
+    best_model_path = os.path.join(traindir, 'best_model.pth')
 
     # --------------------------------------------------------------------------
     # Initialize learning rate scheduler
@@ -335,7 +337,9 @@ def train_val_loop(
     best_metric_value = float('inf') if early_stopping_mode == 'min' else float('-inf')
     epochs_no_improve = 0
     best_epoch = -1
-    best_model_state = None
+    
+    # We no longer need to store the model state in a variable
+    # best_model_state = None 
 
     if early_stopping_patience is not None:
         if early_stopping_monitor_metric is None:
@@ -418,34 +422,30 @@ def train_val_loop(
         with open(stat_fname_path, 'w') as json_file:
                 json.dump(main_metrics, json_file, indent=4)
 
-        # ----- Early Stopping Logic -----
+        # ----- [FIXED] Early Stopping Logic -----
         if early_stopping_patience is not None:
             current_monitor_value = current_epoch_metrics_dict.get(early_stopping_monitor_metric)
             if current_monitor_value is None:
-                print(f"Warning: Monitored metric '{early_stopping_monitor_metric}' not found for early stopping in current epoch. Skipping early stopping check.")
+                print(f"Warning: Monitored metric '{early_stopping_monitor_metric}' not found for early stopping. Skipping check.")
             else:
+                improved = False
                 if early_stopping_mode == 'min':
                     if current_monitor_value < best_metric_value - early_stopping_min_delta:
-                        best_metric_value = current_monitor_value
-                        epochs_no_improve = 0
-                        best_epoch = epoch
-                        # Save the best model state dict
-                        best_model_state = model.state_dict()
-                        print(f"New best model saved at epoch {epoch} with {early_stopping_monitor_metric}: {best_metric_value:.6f}")
-                    else:
-                        epochs_no_improve += 1
+                        improved = True
                 elif early_stopping_mode == 'max':
                     if current_monitor_value > best_metric_value + early_stopping_min_delta:
-                        best_metric_value = current_monitor_value
-                        epochs_no_improve = 0
-                        best_epoch = epoch
-                        # Save the best model state dict
-                        best_model_state = model.state_dict()
-                        print(f"New best model saved at epoch {epoch} with {early_stopping_monitor_metric}: {best_metric_value:.6f}")
-                    else:
-                        epochs_no_improve += 1
+                        improved = True
+                
+                if improved:
+                    best_metric_value = current_monitor_value
+                    epochs_no_improve = 0
+                    best_epoch = epoch
+                    # --- CHANGE: Save the best model state_dict directly to a file ---
+                    if save_model:
+                        torch.save(model.state_dict(), best_model_path)
+                        print(f"New best model state_dict saved at epoch {epoch} with {early_stopping_monitor_metric}: {best_metric_value:.6f}")
                 else:
-                    raise ValueError("early_stopping_mode must be 'min' or 'max'.")
+                    epochs_no_improve += 1
 
                 if epochs_no_improve >= early_stopping_patience:
                     print(f"Early stopping triggered at epoch {epoch}! No improvement in '{early_stopping_monitor_metric}' for {early_stopping_patience} epochs.")
@@ -469,20 +469,24 @@ def train_val_loop(
                 json.dump(main_metrics, json_file, indent=4)
             print(f'Saved checkpoint at epoch {epoch}.')
 
-    # ----- Final Model Saving (either last epoch or best early stopped model) -----
+    # ----- [FIXED] Final Model Handling -----
     if save_model:
-        if best_model_state is not None and early_stopping_patience is not None:
-            # If early stopping was active and a best model was found
-            model.load_state_dict(best_model_state) # Load the best weights back into the model
-            print(f'Loading best model from epoch {best_epoch} with {early_stopping_monitor_metric}: {best_metric_value:.6f}')
-            model_path = os.path.join(traindir, f'best_model_e{best_epoch}.pth') # Name it based on best epoch
-            torch.save(model.state_dict(), model_path) # Only save state_dict for best model
-            print(f'Saved best model state_dict to {model_path}.')
+        final_model_path = os.path.join(traindir, f'final_model_e{epoch}.pth')
+        torch.save(model.state_dict(), final_model_path)
+        print(f'Saved final model state_dict (from last epoch {epoch}) to {final_model_path}.')
+
+        if best_epoch != -1:
+            # If early stopping found a best model, load it back into the model object
+            # before returning, and optionally rename the file to include the best epoch.
+            print(f"Loading best model from epoch {best_epoch} with {early_stopping_monitor_metric}: {best_metric_value:.6f}")
+            model.load_state_dict(torch.load(best_model_path))
+            
+            # Optional: Rename the best model file to include the epoch number for clarity
+            final_best_path = os.path.join(traindir, f'best_model_e{best_epoch}.pth')
+            os.rename(best_model_path, final_best_path)
+            print(f'Best model state_dict is available at: {final_best_path}')
         else:
-            # If no early stopping or no improvement, save the model from the last completed epoch
-            model_path = os.path.join(traindir, f'final_model_e{epoch}.pth') # Name it based on final epoch
-            torch.save(model.state_dict(), model_path) # Only save state_dict
-            print(f'Saved final model state_dict to {model_path}.')
+            print("Early stopping was not triggered or no improvement was found over the initial epoch.")
 
 
     return model, main_metrics
