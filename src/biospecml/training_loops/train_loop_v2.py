@@ -123,11 +123,23 @@ import numpy as np
 
 #     return model, metrics
 
-def train_model(model, data_loader, device, num_epochs, criterion, optimizer=None,
-              running_type:str='prediction', verbose:bool=True,
-              savedir:str=None, f1_average:str='macro', validation_mode:bool=False,
-              one_epoch_mode:bool=False, metrics_list:list=None,
-              ):
+def train_model(
+        model,
+        data_loader,
+        device,
+        num_epochs,
+        criterion,
+        optimizer=None,
+        running_type:str='prediction',
+        verbose:bool=True,
+        savedir:str=None,
+        f1_average:str='macro',
+        f1_zero_division='warn',
+        labels:list=None,
+        validation_mode:bool=False,
+        one_epoch_mode:bool=False, 
+        metrics_list:list=None,
+        ):
     """
     A basic running loop.
     """
@@ -204,7 +216,9 @@ def train_model(model, data_loader, device, num_epochs, criterion, optimizer=Non
 
         if running_type == 'prediction':
             # Calculate metrics once for the entire epoch's collected data
-            epoch_metrics.update(calc_metric_prediction(np.array(all_targets), np.array(all_preds), metrics_list, f1_average))
+            epoch_metrics.update(calc_metric_prediction(
+                np.array(all_targets), np.array(all_preds), 
+                metrics_list, f1_average, f1_zero_division, labels))
         elif running_type == 'similarity':
             # If similarity metrics need to be calculated epoch-wise, do it here
             # Otherwise, if batch-wise averaging is acceptable for similarity, you'd need to re-introduce a similar sum/average
@@ -263,6 +277,8 @@ def train_val_loop(
         verbose:bool=True,
         f1_average:str='macro',
         f1_average_test:str='macro',
+        f1_zero_division='warn',
+        labels=None,
         metrics_list:list=['f1', 'accuracy'],
         savedir:str=None,
         epoch_save_checkpoints:list=[],
@@ -361,6 +377,8 @@ def train_val_loop(
                 model, train_loader, device, epoch, criterion, optimizer,
                 running_type = running_type,
                 f1_average = f1_average,
+                f1_zero_division = f1_zero_division,
+                labels = labels,
                 validation_mode = False,
                 one_epoch_mode = True,
                 metrics_list = metrics_list,

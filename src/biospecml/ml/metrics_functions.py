@@ -9,7 +9,12 @@ import numpy as np
 
 
 def calc_metric_prediction(
-    inputs, outputs, metrics_list=["accuracy", "f1"], f1_average="macro", f1_zero_division=1
+    inputs,
+    outputs,
+    metrics_list=["accuracy", "f1"],
+    f1_average="macro",
+    f1_zero_division='warn',
+    labels=None,
 ):
     """
     Evaluate the performance of a model for classification tasks using various metrics.
@@ -45,7 +50,7 @@ def calc_metric_prediction(
         if metric == "f1":
             # For binary classification, you might want to specify pos_label if not 0 or 1
             # and average='binary' or 'weighted'. 'macro' treats both classes equally.
-            f1 = f1_score(inputs, outputs, average=f1_average, zero_division=f1_zero_division)
+            f1 = f1_score(inputs, outputs, average=f1_average, zero_division=f1_zero_division, labels=labels)
             metrics["f1"] = f1
 
         if metric == "accuracy":
