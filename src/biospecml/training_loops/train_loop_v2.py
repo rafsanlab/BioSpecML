@@ -392,6 +392,8 @@ def train_val_loop(
                 model, test_loader, device, epoch, criterion, optimizer,
                 running_type = running_type,
                 f1_average = f1_average_test,
+                f1_zero_division = f1_zero_division,
+                labels = labels,
                 validation_mode = True,
                 one_epoch_mode = True,
                 metrics_list = metrics_list,
