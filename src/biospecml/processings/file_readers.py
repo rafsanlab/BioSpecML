@@ -80,8 +80,8 @@ def read_mat(filename, instrument='agilent'):
         # w, h, p, wavenumbers, sp = agiltooct(filename) 
         # return  w, h, p, wavenumbers, sp
     else:
-        s = sio.loadmat(filename)
         if instrument == 'agilent':
+            s = sio.loadmat(filename)
             info = sio.whosmat(filename)
             ss = s[(str(info[0][0]))]
             wavenumber=ss[:,0]
@@ -100,10 +100,17 @@ def read_mat(filename, instrument='agilent'):
                     h = 1
             p = sp.reshape(sizex,h,w,order='C')
         elif instrument == 'spero':
-            w = s['dX'].flatten()[0]
-            h = s['dY'].flatten()[0]
-            wavenumber = s['wn'].flatten()
-            sp = s['r'].T
-            p = sp.reshape(-1, h,w)
+            mat = sio.loadmat(filename)
+            wavenumber = mat['wn'].flatten()
+            p = mat['r'].T
+            w, h = int(mat['dX'][0]), int(mat['dY'][0])
+            sp = p.reshape(-1, h, w)
+
+            # OLD VERSION    
+            # w = s['dX'].flatten()[0]
+            # h = s['dY'].flatten()[0]
+            # wavenumber = s['wn'].flatten()
+            # sp = s['r'].T
+            # p = sp.reshape(-1, h,w)
 
     return  w, h, p, wavenumber, sp
