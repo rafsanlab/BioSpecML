@@ -101,10 +101,10 @@ def read_mat(filename, instrument='agilent'):
             p = sp.reshape(sizex,h,w,order='C')
         elif instrument == 'spero':
             mat = sio.loadmat(filename)
-            wavenumber = mat['wn'].flatten()
-            p = mat['r'].T
-            w, h = int(mat['dX'][0]), int(mat['dY'][0])
-            sp = p.reshape(-1, h, w)
+            wn = mat['wn'].flatten()
+            s = mat['s'].T
+            z = len(wn)
+            w, h = int(mat['w'][0]), int(mat['h'][0])
 
             # OLD VERSION    
             # w = s['dX'].flatten()[0]
