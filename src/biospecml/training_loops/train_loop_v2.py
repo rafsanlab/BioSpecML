@@ -163,6 +163,7 @@ def train_model(
         # Initialize lists to collect all predictions and targets for the epoch
         all_preds = []
         all_targets = []
+        all_probs = []
         total_loss = 0.0 # Use total_loss to sum loss across batches
 
         loop_count = 0 
@@ -198,9 +199,11 @@ def train_model(
             # Collect predictions and targets for epoch-level metric calculation
             if running_type=='prediction':
                 preds = torch.argmax(outputs, dim=1).numpy()
+                probs_np = torch.softmax(outputs, dim=1).cpu().numpy()
                 targets_np = targets.numpy()
                 all_preds.extend(preds)
                 all_targets.extend(targets_np)
+                all_probs.extend(probs_np)
             elif running_type=='similarity': # Assuming calc_metric_similarity also needs all outputs/targets
                 # You'd need a similar collection for similarity outputs/targets
                 # For simplicity, if calc_metric_similarity can be run batch-wise and averaged, keep current logic
