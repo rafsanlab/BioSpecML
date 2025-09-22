@@ -1,61 +1,159 @@
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
-from sklearn.metrics import f1_score, accuracy_score
+from sklearn.metrics import (
+    f1_score,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 from sklearn.metrics import mean_squared_error, jaccard_score
 import numpy as np
 
 # --------------- helper functions ---------------
 
 
+# def calc_metric_prediction(
+#     inputs,
+#     outputs,
+#     metrics_list=["accuracy", "f1"],
+#     f1_average="macro",
+#     f1_zero_division='warn',
+#     labels=None,
+# ):
+#     """
+#     Evaluate the performance of a model for classification tasks using various metrics.
+
+#     Args:
+#     - inputs (torch.Tensor): Original input labels (ground truth).
+#     - outputs (torch.Tensor): Predicted output labels.
+#     - metrics_list (list): List of metrics to compute. Options: 'accuracy', 'f1'.
+#                            Default is ["accuracy", "f1"].
+#     - f1_average (str): Averaging method for F1-score. See sklearn.metrics.f1_score for options.
+#                         Default is "macro".
+#     - f1_zero_division (int or float): Value to return when there is a zero division.
+#                                        Can be 0 or 1. Default is 1, meaning an undefined
+#                                        F-score (due to no true/predicted samples) will be 1.0.
+
+#     Returns:
+#     - result (dict): Computed metric value or a dictionary containing different evaluation metrics.
+#     """
+#     metrics = {}
+
+#     if not isinstance(inputs, np.ndarray) or not isinstance(
+#         outputs, np.ndarray
+#     ):
+#         raise TypeError("Inputs/outputs must be torch.Tensor or numpy.ndarray for predictions.")
+
+#     for metric in metrics_list:
+
+#         if metric not in ["accuracy", "f1"]:
+#             raise ValueError(
+#                 f"Invalid metric: '{metric}'. Choose from 'accuracy' or 'f1'."
+#             )
+
+#         if metric == "f1":
+#             # For binary classification, you might want to specify pos_label if not 0 or 1
+#             # and average='binary' or 'weighted'. 'macro' treats both classes equally.
+#             f1 = f1_score(inputs, outputs, average=f1_average, zero_division=f1_zero_division, labels=labels)
+#             metrics["f1"] = f1
+
+#         if metric == "accuracy":
+#             accuracy = accuracy_score(inputs, outputs)
+#             metrics["accuracy"] = accuracy
+
+#     return metrics
+
 def calc_metric_prediction(
     inputs,
     outputs,
-    metrics_list=["accuracy", "f1"],
+    metrics_list=["accuracy", "f1", "precision", "recall", "auroc"],
+    probabilities=None,  # <-- optional for AUROC
     f1_average="macro",
-    f1_zero_division='warn',
+    f1_zero_division="warn",
+    precision_average="macro",
+    precision_zero_division="warn",
+    recall_average="macro",
+    recall_zero_division="warn",
+    auroc_average="macro",
+    auroc_multi_class="ovr",
     labels=None,
 ):
     """
-    Evaluate the performance of a model for classification tasks using various metrics.
+    Evaluate the performance of a model for classification tasks.
 
     Args:
-    - inputs (torch.Tensor): Original input labels (ground truth).
-    - outputs (torch.Tensor): Predicted output labels.
-    - metrics_list (list): List of metrics to compute. Options: 'accuracy', 'f1'.
-                           Default is ["accuracy", "f1"].
-    - f1_average (str): Averaging method for F1-score. See sklearn.metrics.f1_score for options.
-                        Default is "macro".
-    - f1_zero_division (int or float): Value to return when there is a zero division.
-                                       Can be 0 or 1. Default is 1, meaning an undefined
-                                       F-score (due to no true/predicted samples) will be 1.0.
+    - inputs (array-like): Ground truth labels.
+    - outputs (array-like): Predicted labels (argmax).
+    - probabilities (array-like or None): Predicted probabilities for AUROC.
+    - metrics_list (list): Metrics to compute: "accuracy", "f1", "precision", "recall", "auroc".
+    - *_average, *_zero_division: Parameters controlling F1/precision/recall behavior.
+    - auroc_average (str): Averaging method for AUROC ("macro" or "weighted").
+    - auroc_multi_class (str): Multiclass AUROC strategy: "ovr" or "ovo".
+    - labels (list): Optional label indices.
 
     Returns:
-    - result (dict): Computed metric value or a dictionary containing different evaluation metrics.
+    - metrics (dict): Computed metric values.
     """
-    metrics = {}
 
     if not isinstance(inputs, np.ndarray) or not isinstance(
         outputs, np.ndarray
     ):
         raise TypeError("Inputs/outputs must be torch.Tensor or numpy.ndarray for predictions.")
 
-    for metric in metrics_list:
+    metrics = {}
 
-        if metric not in ["accuracy", "f1"]:
+    for metric in metrics_list:
+        if metric not in ["accuracy", "f1", "precision", "recall", "auroc"]:
             raise ValueError(
-                f"Invalid metric: '{metric}'. Choose from 'accuracy' or 'f1'."
+                f"Invalid metric: '{metric}'. Choose from 'accuracy', 'f1', 'precision', 'recall', 'auroc'."
             )
 
-        if metric == "f1":
-            # For binary classification, you might want to specify pos_label if not 0 or 1
-            # and average='binary' or 'weighted'. 'macro' treats both classes equally.
-            f1 = f1_score(inputs, outputs, average=f1_average, zero_division=f1_zero_division, labels=labels)
-            metrics["f1"] = f1
-
         if metric == "accuracy":
-            accuracy = accuracy_score(inputs, outputs)
-            metrics["accuracy"] = accuracy
+            metrics["accuracy"] = accuracy_score(inputs, outputs)
+
+        elif metric == "f1":
+            metrics["f1"] = f1_score(
+                inputs,
+                outputs,
+                average=f1_average,
+                zero_division=f1_zero_division,
+                labels=labels,
+            )
+
+        elif metric == "precision":
+            metrics["precision"] = precision_score(
+                inputs,
+                outputs,
+                average=precision_average,
+                zero_division=precision_zero_division,
+                labels=labels,
+            )
+
+        elif metric == "recall":
+            metrics["recall"] = recall_score(
+                inputs,
+                outputs,
+                average=recall_average,
+                zero_division=recall_zero_division,
+                labels=labels,
+            )
+
+        elif metric == "auroc":
+            if probabilities is None:
+                metrics["auroc"] = "Skipped (no probabilities provided)"
+            else:
+                try:
+                    metrics["auroc"] = roc_auc_score(
+                        inputs,
+                        probabilities,
+                        average=auroc_average,
+                        multi_class=auroc_multi_class,
+                        labels=labels,
+                    )
+                except ValueError as e:
+                    metrics["auroc"] = f"AUROC failed: {str(e)}"
 
     return metrics
 
