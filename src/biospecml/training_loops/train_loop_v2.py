@@ -201,7 +201,7 @@ def train_model(
             # Collect predictions and targets for epoch-level metric calculation
             if running_type=='prediction':
                 preds = torch.argmax(outputs, dim=1).numpy()
-                probs_np = torch.softmax(outputs, dim=1).cpu().numpy()
+                probs_np = torch.softmax(outputs, dim=1).detach().numpy()
                 targets_np = targets.numpy()
                 all_preds.extend(preds)
                 all_targets.extend(targets_np)
