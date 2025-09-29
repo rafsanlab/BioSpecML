@@ -451,7 +451,12 @@ def train_val_loop(
                 print(f'|| {phase.upper()}', end=' |')
                 for key, value in metrics.items():
                     if 'epochs' not in key:
-                        print(f"| {key} : {value[-1]:.6f}", end=" ")
+                        # Check if the value is a number before formatting
+                        if isinstance(value[-1], (int, float)):
+                            print(f"| {key} : {value[-1]:.6f}", end=" ")
+                        else:
+                            # If not a number, print it as a string
+                            print(f"| {key} : {value[-1]}", end=" ")
             print()
 
         # save metrics
