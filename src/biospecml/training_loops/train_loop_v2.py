@@ -297,6 +297,7 @@ def train_val_loop(
         epoch_save_checkpoints:list=[],
         save_model:bool=True,
         use_lr_scheduler:bool=False,
+        custom_scheduler=None,
         lr_scheduler_step_size:int=None,
         lr_scheduler_gamma:float=None,
         early_stopping_patience:int=None,
@@ -347,19 +348,30 @@ def train_val_loop(
     
     # Define the path for the best model. It will be overwritten whenever a new best is found.
     best_model_path = os.path.join(traindir, 'best_model.pth')
-
+    
     # --------------------------------------------------------------------------
     # Initialize learning rate scheduler
-    scheduler = None
+    scheduler = None # Initialize as None
     if use_lr_scheduler:
-        if lr_scheduler_step_size is None or lr_scheduler_gamma is None:
-            raise ValueError("If use_lr_scheduler is True, lr_scheduler_step_size and lr_scheduler_gamma must be provided.")
-        scheduler = torch.optim.lr_scheduler.StepLR(
-            optimizer,
-            step_size=lr_scheduler_step_size,
-            gamma=lr_scheduler_gamma
-            )
-        print(f"Learning rate scheduler initialized: StepLR(step_size={lr_scheduler_step_size}, gamma={lr_scheduler_gamma})")
+        if custom_scheduler is not None:
+            if isinstance(custom_scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                raise Exception("ReduceLROnPlateau not supported for this training loop.")
+            else:
+                scheduler = custom_scheduler
+                print("Using custom learning rate scheduler.")
+        elif lr_scheduler_step_size is not None and lr_scheduler_gamma is not None:
+            scheduler = torch.optim.lr_scheduler.StepLR(
+                optimizer,
+                step_size=lr_scheduler_step_size,
+                gamma=lr_scheduler_gamma
+                )
+            print(f"Learning rate scheduler initialized: StepLR(step_size={lr_scheduler_step_size}, gamma={lr_scheduler_gamma})")
+        else:
+            # If no custom scheduler and no StepLR params are given
+            raise ValueError(
+                "If use_lr_scheduler is True, you must provide either a 'custom_scheduler' "
+                "or both 'lr_scheduler_step_size' and 'lr_scheduler_gamma'."
+                )
 
     # --------------------------------------------------------------------------
     # Initialize Early Stopping variables
