@@ -326,8 +326,8 @@ def train_val_loop(
             current_lr = optimizer.param_groups[0]['lr']
             scheduler.step()
             new_lr = optimizer.param_groups[0]['lr']
-            if verbose and current_lr != new_lr:
-                print(f"Epoch {epoch:03d} - Learning rate updated from {current_lr:.6f} to {new_lr:.6f}")
+            # if verbose and current_lr != new_lr:
+            #     print(f"Epoch {epoch:03d} - Learning rate updated from {current_lr:.6f} to {new_lr:.6f}")
 
 
         # ----- Collect metrics -----
