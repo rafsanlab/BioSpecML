@@ -42,33 +42,32 @@ class ResNetModel(nn.Module):
         pretrained=False, 
         weakly_sv=False, 
         use_attention=False,
-        gated=False,         # New: Toggle Gated Attention
-        in_channels=3        # New: Custom Image Channels
+        gated=False,         
+        in_channels=3        # Now used to adjust the first layer
     ):
         super(ResNetModel, self).__init__()
         
         self.weakly_sv = weakly_sv
         self.use_attention = use_attention
 
-        # 1. Select ResNet
+        # 1. Select ResNet backbone
         if resnet == 152:
-            self.resnet = models.resnet152(pretrained=pretrained)
+            backbone = models.resnet152(pretrained=pretrained)
         elif resnet == 101:
-            self.resnet = models.resnet101(pretrained=pretrained)
+            backbone = models.resnet101(pretrained=pretrained)
         elif resnet == 50:
-            self.resnet = models.resnet50(pretrained=pretrained)
+            backbone = models.resnet50(pretrained=pretrained)
         elif resnet == 34:
-            self.resnet = models.resnet34(pretrained=pretrained)
+            backbone = models.resnet34(pretrained=pretrained)
         elif resnet == 18:
-            self.resnet = models.resnet18(pretrained=pretrained)
+            backbone = models.resnet18(pretrained=pretrained)
         else:
             raise ValueError(f'<resnet> accepted values: 18, 34, 50, 101, or 152.')
         
-        # 2. Modify First Layer if in_channels != 3
+        # 2. Modify First Layer for custom channels (e.g. if dim in (dim, 480, 480) is not 3)
         if in_channels != 3:
-            # We must replace the first Conv2d layer. 
-            # Original: Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-            self.resnet.conv1 = nn.Conv2d(
+            # Replaces the default 7x7 conv that expects 3 channels
+            backbone.conv1 = nn.Conv2d(
                 in_channels, 
                 64, 
                 kernel_size=7, 
@@ -77,19 +76,31 @@ class ResNetModel(nn.Module):
                 bias=False
             )
         
-        # 3. Remove FC layer
-        num_features = self.resnet.fc.in_features
-        self.resnet.fc = nn.Identity()
+        # 3. Extract the features part and the adaptive pool
+        # This keeps the model resolution-agnostic (handles 480x480 automatically)
+        self.features = nn.Sequential(
+            backbone.conv1,
+            backbone.bn1,
+            backbone.relu,
+            backbone.maxpool,
+            backbone.layer1,
+            backbone.layer2,
+            backbone.layer3,
+            backbone.layer4,
+            backbone.avgpool # This is nn.AdaptiveAvgPool2d((1, 1))
+        )
 
-        # 4. Attention Mechanism
+        num_features = backbone.fc.in_features
+
+        # 4. Attention Mechanism (for Weak Supervision)
         if self.use_attention:
-            hidden_dim = 128  # Adjust as needed
+            hidden_dim = 128  
             if gated:
                 self.attention_layer = GatedMILAttention(num_features, hidden_dim)
             else:
                 self.attention_layer = MILAttention(num_features, hidden_dim)
 
-        # 5. Classifier
+        # 5. Classifier Head
         if hidden_units is not None:
             self.fc = nn.Sequential(
                 nn.Linear(num_features, hidden_units),
@@ -102,23 +113,24 @@ class ResNetModel(nn.Module):
     def forward(self, x, return_attention=False):
         attention_weights = None
 
-        # Handle Weak Supervision (Batch, Bags, Channels, H, W)
+        # Handle Weak Supervision bags: (Batch, Bags, Channels, H, W)
         if self.weakly_sv:
             if x.dim() == 5:
                 B, N, C, H, W = x.shape
                 x = x.reshape(B * N, C, H, W) 
             else: 
-                # Fallback / Safety
                 B = x.shape[0]
                 N = 1
-
-        x = self.resnet(x) # (B*N, num_features)
+        
+        # Forward through ResNet features
+        x = self.features(x) # Output: (Batch*N, num_features, 1, 1)
+        x = torch.flatten(x, 1) # Output: (Batch*N, num_features)
 
         if self.weakly_sv:
             x = x.view(B, N, -1) # (B, N, num_features)
 
-        if self.use_attention and self.weakly_sv:
-            x, attention_weights = self.attention_layer(x) # (B, num_features)
+            if self.use_attention:
+                x, attention_weights = self.attention_layer(x) # (B, num_features)
         
         x = self.fc(x)
         
