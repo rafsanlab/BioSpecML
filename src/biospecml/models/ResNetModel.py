@@ -43,7 +43,8 @@ class ResNetModel(nn.Module):
         weakly_sv=False, 
         use_attention=False,
         gated=False,         
-        in_channels=3        # Now used to adjust the first layer
+        in_channels=3,       # Now used to adjust the first layer
+        dropout_rate=0.0     # Added dropout parameter (0.0 means no dropout)
     ):
         super(ResNetModel, self).__init__()
         
@@ -100,15 +101,29 @@ class ResNetModel(nn.Module):
             else:
                 self.attention_layer = MILAttention(num_features, hidden_dim)
 
-        # 5. Classifier Head
+        # 5. Classifier Head (with optional Dropout)
         if hidden_units is not None:
-            self.fc = nn.Sequential(
-                nn.Linear(num_features, hidden_units),
-                nn.ReLU(),
-                nn.Linear(hidden_units, num_classes)
-            )
+            if dropout_rate > 0.0:
+                self.fc = nn.Sequential(
+                    nn.Linear(num_features, hidden_units),
+                    nn.ReLU(),
+                    nn.Dropout(p=dropout_rate),
+                    nn.Linear(hidden_units, num_classes)
+                )
+            else:
+                self.fc = nn.Sequential(
+                    nn.Linear(num_features, hidden_units),
+                    nn.ReLU(),
+                    nn.Linear(hidden_units, num_classes)
+                )
         else:
-            self.fc = nn.Linear(num_features, num_classes)
+            if dropout_rate > 0.0:
+                self.fc = nn.Sequential(
+                    nn.Dropout(p=dropout_rate),
+                    nn.Linear(num_features, num_classes)
+                )
+            else:
+                self.fc = nn.Linear(num_features, num_classes)
 
     def forward(self, x, return_attention=False):
         attention_weights = None
