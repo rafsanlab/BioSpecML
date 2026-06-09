@@ -89,9 +89,25 @@ def train_model(
 
             # Collect predictions and targets for epoch-level metric calculation
             if running_type=='prediction':
-                preds = torch.argmax(outputs, dim=1).numpy()
-                probs_np = torch.softmax(outputs, dim=1).detach().numpy()
-                targets_np = targets.numpy()
+                if binary_mode:
+                    # Use Sigmoid for binary probabilities
+                    probabilities = torch.sigmoid(outputs)
+                    preds = (probabilities > 0.5).int().numpy().flatten()
+                    
+                    # Store as a flat 1D array of probabilities for AUROC/Metrics
+                    probs_np = probabilities.numpy().flatten()
+                else:
+                    # Use Softmax for multiclass probabilities
+                    probs_np = torch.softmax(outputs, dim=1).numpy()
+                    preds = torch.argmax(outputs, dim=1).numpy()
+                
+                # 2. Extract targets safely (flatten if binary to match preds)
+                if binary_mode:
+                    targets_np = targets.detach().numpy().flatten()
+                else:
+                    targets_np = targets.detach().numpy()
+                
+                # 3. Collect everything for epoch-level metrics
                 all_preds.extend(preds)
                 all_targets.extend(targets_np)
                 all_probs.extend(probs_np)
