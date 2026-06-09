@@ -24,6 +24,7 @@ def train_model(
         validation_mode:bool=False,
         one_epoch_mode:bool=False, 
         metrics_list:list=None,
+        binary_mode:bool=False,
         ):
     """
     A basic running loop.
@@ -65,6 +66,9 @@ def train_model(
 
             inputs, targets = inputs.to(device), targets.to(device)
             model.to(device)
+
+            if binary_mode:
+                targets = targets.float().view(-1, 1)
 
             if validation_mode:
                 model.eval()
@@ -191,6 +195,7 @@ def train_val_loop(
         early_stopping_min_delta:float=0.0,
         early_stopping_monitor_metric:str=None,
         early_stopping_mode:str='min',
+        binary_mode:bool=False,
         ):
     
     """
@@ -297,6 +302,7 @@ def train_val_loop(
                 one_epoch_mode = True,
                 metrics_list = metrics_list,
                 verbose = False,
+                binary_mode=binary_mode,
                 )
             container_metrics.append(("train", train_metrics))
 
@@ -314,6 +320,7 @@ def train_val_loop(
                 one_epoch_mode = True,
                 metrics_list = metrics_list,
                 verbose = False,
+                binary_mode=binary_mode,
                 )
             container_metrics.append(("val.", test_metrics))
         else: # If no test_loader, early stopping cannot be based on validation metrics
